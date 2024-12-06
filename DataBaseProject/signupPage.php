@@ -7,10 +7,19 @@ if (isset($_POST["submit"])) {
     $birth_date = $_POST["birth_date"];
     $address = $_POST["address"];
     $phone_number = $_POST["phone_number"];
+    $email = $_POST["eposta"];
+    $password =($_POST["password"]);
 
-    $sql = "INSERT INTO customer (name, surname, birth_date, address, phone_number) 
-            VALUES ('$name', '$surname', '$birth_date', '$address', '$phone_number')";
+    // 1. Adım: user tablosuna kayıt ekle
+    $sql_user = "INSERT INTO user (email, password) VALUES ('$email', '$password')";
+    if (mysqli_query($baglanti, $sql_user)) {
+        // Son eklenen user_ID değerini al
+        $user_id = mysqli_insert_id($baglanti);
 
+        // 2. Adım: customer tablosuna kayıt ekle
+        $sql_customer = "INSERT INTO customer (user_ID, name, surname, birth_date, address, phone_number) 
+                         VALUES ('$user_id', '$name', '$surname', '$birth_date', '$address', '$phone_number')";
+    }
 
     mysqli_close($baglanti);
 }
@@ -35,12 +44,16 @@ if (isset($_POST["submit"])) {
                 <input type="text" name="name" placeholder="Ad" required>
                 <!-- Soyad -->
                 <input type="text" name="surname" placeholder="Soyad" required>
+                <!-- Eposta -->
+                <input type="text" name="eposta" placeholder="E-mail" required>
+                <!-- Şifre -->
+                <input type="password" name="password" placeholder="Password" required>
                 <!-- Doğum Tarihi -->
                 <input type="date" name="birth_date" placeholder="Doğum Tarihi" required>
                 <!-- Adres -->
                 <input type="text" name="address" placeholder="Adres" required>
                 <!-- Telefon Numarası -->
-                <input type="tel" name="phone_number" placeholder="Telefon Numarası" maxlength="11"  required>
+                <input type="tel" name="phone_number" placeholder="Telefon Numarası" maxlength="11" required>
                 <!-- Gönder Butonu -->
                 <input type="submit" class="kayitButton" value="Kayıt Ol">
             </form>
@@ -49,14 +62,14 @@ if (isset($_POST["submit"])) {
                 <div class="giris_kayitButton">
                     <a href="supplierSignupPage.php"> Satıcı Kayıt</a>
                 </div>
-                
+
                 <!-- Üye Girişi -->
                 <div class="KullanıcıGiris">
                     <a href="loginPage.php">Üye Girişi</a>
                 </div>
             </div>
         </div>
-        
+
     </div>
 </body>
 
