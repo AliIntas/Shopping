@@ -8,15 +8,15 @@ if (isset($_POST["submit"])) {
     $address = $_POST["address"];
     $phone_number = $_POST["phone_number"];
     $email = $_POST["eposta"];
-    $password =($_POST["password"]);
+    $password =($_POST["password"]);// Sonradan mp5 ekleyebiliriz
 
-    // 1. Adım: user tablosuna kayıt ekle
+    // user tablosuna kayıt ekle
     $sql_user = "INSERT INTO user (email, password) VALUES ('$email', '$password')";
     if (mysqli_query($baglanti, $sql_user)) {
         // Son eklenen user_ID değerini al
         $user_id = mysqli_insert_id($baglanti);
 
-        // 2. Adım: customer tablosuna kayıt ekle
+        // customer tablosuna kayıt ekle
         $sql_customer = "INSERT INTO customer (user_ID, name, surname, birth_date, address, phone_number) 
                          VALUES ('$user_id', '$name', '$surname', '$birth_date', '$address', '$phone_number')";
     }
