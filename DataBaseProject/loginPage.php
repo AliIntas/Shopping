@@ -26,27 +26,36 @@ if (isset($_POST["submit"])) {
 ?>
 
 
-<!DOCTYpe html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="assets/bootstrap.css">
     <link rel="stylesheet" href="assets/style.css">
-    <title>Login Page</title>
+    <title> Login Page </title>
 </head>
 
 <body>
     <div class="loginBackground">
         <div class="login">
-            <h2> Giriş </h2>
-            <form>
-                <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-                <input type="password" id="password" placeholder="Şifre" required>
-                <input type="submit" class="loginButton form-control mt-3" value="Giriş" name="submit">
+            <h2 style="color:black"> <i>Üye Girişi</i></h2> <!-- Rengi düzenle-->
+            <form method="POST" action="">
+                <input type="text" id="username" name="username" placeholder="Kullanıcı Adı" required>
+                <input type="password" id="password" name="password" placeholder="Şifre" required>
+                <input type="submit" class="loginButton form-control mt-2" value="Giriş" name="submit">
             </form>
-            <div class="giris_kayitButton mt-2">
-                <a href="signupPage.php">Kayıt ol</a>
+            
+            <div class="buttonContainer mt-3">
+                <!-- Kayıt Ol Butonu -->
+                <div class="giris_kayitButton">
+                    <a href="signupPage.php">Kayıt Ol</a>
+                </div>
+                
+                <!-- Satıcı Girişi -->
+                <div class="saticiGiris">
+                    <a href="supplierLoginPage.php">Satıcı Girişi</a>
+                </div>
             </div>
         </div>
     </div>
