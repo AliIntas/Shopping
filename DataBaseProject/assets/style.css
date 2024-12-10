@@ -1,12 +1,12 @@
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+    height: 100%; /* Tam ekran yüksekliği */
+    margin: 0; /* Varsayılan boşlukları kaldır */
+    padding: 0; 
 }
 
 .loginBackground {
     background: linear-gradient(90deg, rgba(8, 3, 78, 1) 0%, rgba(139, 142, 164, 1) 50%, rgba(0, 212, 255, 1) 100%);
-    height: 100%;
+    height: 100vh ;
     display: flex;
     justify-content: center; 
     align-items: center; 
@@ -66,6 +66,10 @@ html, body {
     text-decoration: none;
 }
 
+.buttonContainer a:hover{
+   text-decoration:underline;
+}
+
 /* Arka plan */
 .kayitBackground {
     background: linear-gradient(90deg, rgba(8, 3, 78, 1) 0%, rgba(139, 142, 164, 1) 50%, rgba(0, 212, 255, 1) 100%);
@@ -123,4 +127,36 @@ html, body {
 .kayitButton:hover {
     background-color: #5585d5;
     transition: all 0.5s ease;
+}
+
+
+.anaEkran {
+    height: calc(100vh - 80px); /* Başlık kısmı hariç tüm sayfa yüksekliği */
+}
+
+.baslik {
+    padding-top: 10px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    height: 80px;
+    background-color: #E3F2FD; /* Açık mavi arka plan */
+}
+
+
+.kategori {
+    background-color: #F8F9FA; /* Hafif gri arka plan */
+    border-right: 2px solid #ddd; /* Sağ tarafa çizgi */
+    padding: 10px;
+    height: 100%; /* Tam yüksekliğe uzanması */
+}
+
+.kategori a{
+    justify-items: center;
+}
+
+.content {
+    padding: 20px;
+    background-color: #FFFFFF;
+    height: 100%; /* Tam yüksekliğe uzanması */
+    overflow-y: auto; /* Uzun içerikler için kaydırma */
 }
