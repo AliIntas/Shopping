@@ -1,14 +1,15 @@
 <?php
 if (isset($_POST["submit"])) {
+    session_start();
     include("inc/baglan.php");
 
-    $name = $_POST["name"];
-    $surname = $_POST["surname"];
-    $birth_date = $_POST["birth_date"];
-    $address = $_POST["address"];
-    $phone_number = $_POST["phone_number"];
-    $email = $_POST["eposta"];
-    $password =($_POST["password"]);// Sonradan mp5 ekleyebiliriz
+    $name = ($_POST["name"]);
+    $surname = ($_POST["surname"]);
+    $birth_date = ($_POST["birth_date"]);
+    $address = ($_POST["address"]);
+    $phone_number = ($_POST["phone_number"]);
+    $email = ($_POST["eposta"]);
+    $password = ($_POST["password"]); // Şifreleme ekliyebiliriz
 
     // user tablosuna kayıt ekle
     $sql_user = "INSERT INTO user (email, password) VALUES ('$email', '$password')";
@@ -19,8 +20,16 @@ if (isset($_POST["submit"])) {
         // customer tablosuna kayıt ekle
         $sql_customer = "INSERT INTO customer (user_ID, name, surname, birth_date, address, phone_number) 
                          VALUES ('$user_id', '$name', '$surname', '$birth_date', '$address', '$phone_number')";
-    }
 
+        if (mysqli_query($baglanti, $sql_customer)) {
+            header('Location:loginPage.php');
+            exit();
+        } else {
+            echo "Müşteri kaydı sırasında bir hata oluştu: " . mysqli_error($baglanti);
+        }
+    } else {
+        echo "Kayıt olurken hata oluştu: " . mysqli_error($baglanti);
+    }
     mysqli_close($baglanti);
 }
 ?>
@@ -58,10 +67,10 @@ if (isset($_POST["submit"])) {
                 <input type="submit" class="kayitButton" value="Kayıt Ol">
             </form>
             <div class="buttonContainer mt-3">
-                <!-- Satıcı Kayıt Ol Butonu -->
+                <!-- Satıcı Kayıt Ol Butonu 
                 <div class="giris_kayitButton">
                     <a href="supplierSignupPage.php"> Satıcı Kayıt</a>
-                </div>
+                </div>-->
 
                 <!-- Üye Girişi -->
                 <div class="KullanıcıGiris">
