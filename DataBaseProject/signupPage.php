@@ -10,9 +10,10 @@ if (isset($_POST["submit"])) {
     $phone_number = ($_POST["phone_number"]);
     $email = ($_POST["eposta"]);
     $password = ($_POST["password"]); // Şifreleme eklenebilir
-
+    $authorization=1;
+    
     // user tablosuna kayıt ekle
-    $sql_user = "INSERT INTO user (email, password) VALUES ('$email', '$password')";
+    $sql_user = "INSERT INTO user (email, password,authorization) VALUES ('$email', '$password','$authorization')";
     if (mysqli_query($baglanti, $sql_user)) {
         // Son eklenen user_ID değerini al
         $user_id = mysqli_insert_id($baglanti);
