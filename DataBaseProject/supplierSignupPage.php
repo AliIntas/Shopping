@@ -1,11 +1,36 @@
 <?php
+session_start();
+if (isset($_POST["submit"])) {
+    include("inc/baglan.php");
 
+    $name = ($_POST["name"]);
+    $address = ($_POST["address"]);
+    $company_phone_number = ($_POST["phone_number"]);
+    $email = ($_POST["eposta"]);
+    $password = ($_POST["password"]); // Şifreleme eklenebilir
+    $authorization=2;
 
+    // user tablosuna kayıt ekle
+    $sql_user = "INSERT INTO user (email, password, authorization) VALUES ('$email', '$password','$authorization')";
+    if (mysqli_query($baglanti, $sql_user)) {
+        // Son eklenen user_ID değerini al
+        $user_id = mysqli_insert_id($baglanti);
 
+        // customer tablosuna kayıt ekle
+        $sql_supplier = "INSERT INTO supplier (user_ID, company_name, company_number, company_adress) 
+                         VALUES ('$user_id', '$name', '$company_phone_number','$address')";
 
-
-
-
+        if (mysqli_query($baglanti, $sql_supplier)) {
+            header('Location: supplierLoginPage.php');
+            exit();
+        } else {
+            echo "Satıcı kaydı sırasında bir hata oluştu: " . mysqli_error($baglanti);
+        }
+    } else {
+        echo "Kayıt olurken hata oluştu: " . mysqli_error($baglanti);
+    }
+    mysqli_close($baglanti);
+}
 ?>
 
 
@@ -33,9 +58,9 @@
                 <!--Sirket Adres -->
                 <input type="text" name="address" placeholder="Sirket Adres" required>
                 <!--Sirket Telefon Numarası -->
-                <input type="tel" name="phone_number" placeholder="Sirket Telefon Numarası" maxlength="11" required>
+                <input type="text" name="phone_number" placeholder="Sirket Telefon Numarası" maxlength="11" required>
                 <!-- Gönder Butonu -->
-                <input type="submit" class="kayitButton" value="Kayıt Ol">
+                <input type="submit" name="submit" class="kayitButton" value="Kayıt Ol">
             </form>
             <div class="buttonContainer mt-3">
                 <!-- Satıcı Kayıt Ol Butonu -->
