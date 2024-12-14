@@ -1,27 +1,35 @@
 <?php
-session_start();
 
 if (isset($_POST["submit"])) {
+    session_start();
     include("inc/baglan.php");
-    $username = $_POST["username"];
+    $email = $_POST["email"];
     $password = ($_POST["password"]);
+    $authorization=1;
+    $secim="SELECT * FROM user WHERE   email='$email'";
+    $calistir=mysqli_query($baglanti,$secim);
+    $kayit_sayisi=mysqli_num_rows($calistir);
+    if ($kayit_sayisi> 0) {
 
-    $kul = mysqli_query($baglanti, 'SELECT * FROM user WHERE tcno="' . $username . '" AND password="' . $password . '" AND status=1 AND admin=0');
-
-    if (mysqli_num_rows($kul) > 0) {
-        $user = mysqli_fetch_array($kul);
-        $_SESSION["username"] = $user["name_surname"];
-        $_SESSION["kullanici"] = $user["name_surname"];
-        $_SESSION['email'] = $user["email"];
-        $_SESSION['tel'] = $user["phone_number"];
-        $_SESSION['admin'] = $user["admin"];
-        $_SESSION['id'] = $user["id"]; //iletisim.php için
-        header("Location: index.php");
-
-        exit();
-    } else {
-        echo "Kullanıcı adı ,şifre yanlış veya kullanıcı pasif veya Admin";
+        while($ilgili_kayit=mysqli_fetch_assoc($calistir)){
+            $authorizationDB=$ilgili_kayit["authorization"];
+            if ($authorizationDB==$authorization) {
+            $sifre=$ilgili_kayit["password"];
+                if ($sifre== $password) {
+                $_SESSION   ["username"] = $username;
+                header("location:mainpage.php");
+                }
+            }
+        
+        }
+        
     }
+    else{
+        echo '<div class="alert alert-danger"role ="allert">
+        kullanici adi veya şifre yanlış
+        </div>';   
+    }
+    mysqli_close($baglanti);   
 }
 ?>
 
@@ -41,7 +49,7 @@ if (isset($_POST["submit"])) {
         <div class="login">
             <h2 style="color:black"> <i>Üye Girişi</i></h2> <!-- Rengi düzenle-->
             <form method="POST" action="">
-                <input type="text" id="username" name="username" placeholder="Kullanıcı Adı" required>
+                <input type="text" id="email" name="email" placeholder="email" required>
                 <input type="password" id="password" name="password" placeholder="Şifre" required>
                 <input type="submit" class="loginButton form-control mt-2" value="Giriş" name="submit">
             </form>
