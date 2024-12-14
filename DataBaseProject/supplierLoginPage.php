@@ -1,11 +1,35 @@
 <?php
+if (isset($_POST["submit"])) {
+    session_start();
+    include("inc/baglan.php");
+    $email = $_POST["email"];
+    $password = ($_POST["password"]);
+    $authorization=2;
+    $secim="SELECT * FROM user WHERE   email='$email'";
+    $calistir=mysqli_query($baglanti,$secim);
+    $kayit_sayisi=mysqli_num_rows($calistir);
+    if ($kayit_sayisi> 0) {
 
-
-
-
-
-
-
+        while($ilgili_kayit=mysqli_fetch_assoc($calistir)){
+            $authorizationDB=$ilgili_kayit["authorization"];
+            if ($authorizationDB==$authorization) {
+            $sifre=$ilgili_kayit["password"];
+                if ($sifre== $password) {
+                $_SESSION   ["username"] = $username;
+                header("location:mainpage.php");
+                }
+            }
+        
+        }
+        
+    }
+    else{
+        echo '<div class="alert alert-danger"role ="allert">
+        kullanici adi veya şifre yanlış
+        </div>';   
+    }
+    mysqli_close($baglanti);   
+}
 ?>
 
 <!DOCTYPE html>
@@ -23,7 +47,7 @@
         <div class="login">
             <h2> <i>Satıcı Girişi</i></h2>
             <form method="POST" action="">
-                <input type="text" id="username" name="username" placeholder="Satıcı Kullanıcı Adı" required>
+                <input type="text" id="email" name="email" placeholder="Satıcı e-maili" required>
                 <input type="password" id="password" name="password" placeholder="Şifre" required>
                 <input type="submit" class="loginButton form-control mt-2" value="Giriş" name="submit">
             </form>
