@@ -1,30 +1,21 @@
 <?php
-session_start(); 
-
+session_start();
 if (isset($_POST["submit"])) {
+    
     include("inc/baglan.php");
-
-    // Formdan gelen verileri al
     $email = $_POST["email"];
-    $password = $_POST["password"];
-
-    // Kullanıcıyı veritabanında arayın ve kullanıcı adı ile birlikte join yapın
-    $secim = "SELECT user.email, user.password, user.authorization, customer.name 
-              FROM user 
-              JOIN customer ON user.user_ID = customer.user_ID 
-              WHERE user.email = '$email'";
-              
-    $calistir = mysqli_query($baglanti, $secim);
-
+    $password = ($_POST["password"]);
+    $secim="SELECT * FROM user u join customer c on u.user_id=c.user_id WHERE   Email='$email'";
+    $calistir=mysqli_query($baglanti,$secim);
     if ($calistir && mysqli_num_rows($calistir) > 0) {
         // Kullanıcı bulundu, bilgileri al
         $ilgili_kayit = mysqli_fetch_assoc($calistir);
 
         // Şifre ve yetki kontrolü
-        if ($ilgili_kayit["password"] === $password && $ilgili_kayit["authorization"] == 1) {
+        if ($ilgili_kayit["Password"] === $password ) {
             // Kullanıcı adı ve e-posta oturuma ekleniyor
-            $_SESSION["email"] = $ilgili_kayit["email"];
-            $_SESSION["kulAdı"] = $ilgili_kayit["name"]; // İsim bilgisini oturuma ekliyoruz
+            $_SESSION["email"] = $ilgili_kayit["Email"];
+            $_SESSION["kulAdı"] = $ilgili_kayit["FirstName"]; // İsim bilgisini oturuma ekliyoruz
 
             // Ana sayfaya yönlendirme
             header("Location: mainpage.php");
@@ -35,11 +26,13 @@ if (isset($_POST["submit"])) {
     } else {
         $hata = "Bu e-posta ile kayıtlı kullanıcı bulunamadı!";
     }
-
-    // Veritabanı bağlantısını kapat
-    mysqli_close($baglanti);
+    $kayit_sayisi=mysqli_num_rows($calistir);
+   
+    mysqli_close($baglanti);   
 }
 ?>
+
+
 <!DOCTYPE html>
 <html lang="tr">
 
