@@ -150,13 +150,27 @@ html, body {
     height: 100%; /* Tam yüksekliğe uzanması */
 }
 
-.kategori a{
-    justify-items: center;
+.kategori ul {
+    padding: 10px;
+    /*list-style: none;  Noktaları kaldırmak için */
 }
 
-.content {
-    padding: 20px;
-    background-color: #FFFFFF;
-    height: 100%; /* Tam yüksekliğe uzanması */
-    overflow-y: auto; /* Uzun içerikler için kaydırma */
+.kategori a {
+    text-align: center;
+    display: inline-block; /* Gerekirse */
+    text-decoration: none; /* Alt çizgiyi kaldırır */
+    padding: 10px 20px; /* Düğme görünümü için */
+    background-color: #007bff; /* Mavi arka plan */
+    color: white;
+    border-radius: 5px; /* Yuvarlak köşeler */
+}
+
+.buttonContainer1 {
+    display: flex; /* Flexbox ile hizalama */
+    justify-content: center; /* Yatayda ortala */
+    margin-top: 20px; /* Üstten boşluk */
+}
+
+.KullanıcıGiris {
+    text-align: center;
 }
