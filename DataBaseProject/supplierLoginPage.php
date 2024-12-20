@@ -5,20 +5,18 @@ if (isset($_POST["submit"])) {
     $email = $_POST["email"];
     $password = ($_POST["password"]);
     $authorization=2;
-    $secim="SELECT * FROM user WHERE   email='$email'";
+    $secim="SELECT * FROM user u join supplier s on u.user_id=s.user_id WHERE   email='$email'";
     $calistir=mysqli_query($baglanti,$secim);
     $kayit_sayisi=mysqli_num_rows($calistir);
     if ($kayit_sayisi> 0) {
 
         while($ilgili_kayit=mysqli_fetch_assoc($calistir)){
-            $authorizationDB=$ilgili_kayit["authorization"];
-            if ($authorizationDB==$authorization) {
-            $sifre=$ilgili_kayit["password"];
+            $sifre=$ilgili_kayit["Password"];
                 if ($sifre== $password) {
                 $_SESSION   ["username"] = $username;
                 header("location:mainpage.php");
                 }
-            }
+            
         
         }
         

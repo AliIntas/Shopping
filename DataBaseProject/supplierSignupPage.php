@@ -11,21 +11,10 @@ if (isset($_POST["submit"])) {
     $authorization=2;
 
     // user tablosuna kayıt ekle
-    $sql_user = "INSERT INTO user (email, password, authorization) VALUES ('$email', '$password','$authorization')";
+    $sql_user =" SELECT * FROM user u join supplier s on u.user_id=s.user_id WHERE   email='$email'";
     if (mysqli_query($baglanti, $sql_user)) {
         // Son eklenen user_ID değerini al
-        $user_id = mysqli_insert_id($baglanti);
-
-        // customer tablosuna kayıt ekle
-        $sql_supplier = "INSERT INTO supplier (user_ID, company_name, company_number, company_adress) 
-                         VALUES ('$user_id', '$name', '$company_phone_number','$address')";
-
-        if (mysqli_query($baglanti, $sql_supplier)) {
-            header('Location: supplierLoginPage.php');
-            exit();
-        } else {
-            echo "Satıcı kaydı sırasında bir hata oluştu: " . mysqli_error($baglanti);
-        }
+        
     } else {
         echo "Kayıt olurken hata oluştu: " . mysqli_error($baglanti);
     }
