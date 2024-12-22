@@ -1,37 +1,53 @@
 <?php
-session_start(); // Oturumu başlat
+session_start();
+include("inc/baglan.php");
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kategoriler</title>
 </head>
 
 <body>
-    <div class="kategori"> <!-- DB'den kategoriler alınacak -->
-        <div>
-            <h4>Kategori</h4>
+<div class="kategori"> <!-- DB'den kategoriler alınacak -->
+    <div>
+        
+            <h3>Kategoriler</h3>
             <ul>
-                <li>Kıyafet</li>
-                <li>Teknoloji</li>
-                <li>Yemek</li>
+            <li><a href="?kat_id=0">Tüm Ürünler</a></li>
+                <?php
+                // Kategorileri al
+                $kategoriler = $baglanti->query("SELECT * FROM category");
+        
+                if ($kategoriler->num_rows > 0) {
+                    while ($kategori = $kategoriler->fetch_assoc()) {
+                        echo '<li><a href="?kat_id=' . $kategori["Category_id"] . '">' . htmlspecialchars($kategori["CategoryName"]) . '</a></li>';
+                    }
+                } else {
+                    echo "<li>Henüz kategori eklenmemiş.</li>";
+                }
+
+                ?>
             </ul>
         </div>
 
-        <div>
+        <div class="kat_user">
             <!-- Kullanıcı durumu -->
             <?php
             if (isset($_SESSION["email"])) { // Kullanıcı giriş yaptıysa
                 echo '<p>Hoşgeldiniz, <b>' . htmlspecialchars($_SESSION["kulAdı"]) . '</b></p>';
-                echo ' | <a href="logout.php"  text-decoration: none;">Çıkış Yap</a>'; // Çıkış bağlantısı
+                echo '<a href="cart.php" class="kat_login"">Sepetim</a>'; // SEPET bağlantısı
+                echo '<a href="orders.php" class="kat_login"">Siparişlerim</a>'; // Siparişlerim bağlantısı
+                echo '<a href="logout.php" class="kat_logout"">Çıkış Yap</a>'; // Çıkış bağlantısı
+
             } else { // Giriş yapılmamışsa
-                echo '<a href="loginPage.php"  text-decoration: none;">Giriş Yap</a>'; // Giriş bağlantısı
+                echo '<a href="loginPage.php" class="kat_login;">Giriş Yap</a>'; // Giriş bağlantısı
             }
             ?>
-
         </div>
     </div>
 </body>
