@@ -152,18 +152,60 @@ html, body {
 
 .kategori ul {
     padding: 10px;
-    /*list-style: none;  Noktaları kaldırmak için */
+    list-style: none; /* Noktaları kaldırmak için */
 }
-
+/*
 .kategori a {
     text-align: center;
-    display: inline-block; /* Gerekirse */
-    text-decoration: none; /* Alt çizgiyi kaldırır */
-    padding: 10px 20px; /* Düğme görünümü için */
-    background-color: #007bff; /* Mavi arka plan */
+    display: inline-block;  Gerekirse 
+    text-decoration: none; /* Alt çizgiyi kaldırır 
+    padding: 10px 20px; /* Düğme görünümü için 
+    background-color: #007bff; /* Mavi arka plan 
     color: white;
-    border-radius: 5px; /* Yuvarlak köşeler */
+    border-radius: 5px; /* Yuvarlak köşeler 
+}*/
+
+
+.kategori a {
+    display: inline; /* Düğme görünümünü kaldırmak için */
+    text-decoration: none; /* Alt çizgiyi kaldırır */
+    color: black; /* Metin rengini siyah yapar */
+    padding: 0; /* Düğme stilinden kaynaklanan boşlukları kaldırır */
+    background-color: transparent; /* Arka plan rengini kaldırır */
+    border-radius: 0; /* Köşeleri düz yapar */
 }
+
+.kategori a:hover{
+    text-decoration: underline;
+}
+
+.kat_user {
+    display: flex;
+    flex-direction: column; /* Bağlantıları dikey olarak hizalar */
+    align-items: center; /* Yatayda ortalama */
+    padding: 2px; /* Üst ve alt boşlukları düzenlemek için */
+    font-size: 17px;
+    transition:  color 0.5s!important;
+}
+
+.kat_login{
+    color:  #007bff !important;
+    text-decoration: none!important; /* Alt çizgiyi kaldırır */
+}
+
+.kat_login:hover {
+    color: #004085!important; /* Mavi tonunda renk */
+   }
+
+.kat_logout {
+    text-decoration: none!important; 
+    color: #e63946!important; /* Çıkış için kırmızı renk */
+}
+
+.kat_logout:hover {
+    color: #bd2130!important;
+}
+
 
 .buttonContainer1 {
     display: flex; /* Flexbox ile hizalama */
