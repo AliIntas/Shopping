@@ -1,5 +1,7 @@
 <?php
 session_start();
+
+
 if (isset($_POST["submit"])) {
     
     include("inc/baglan.php");
@@ -15,6 +17,7 @@ if (isset($_POST["submit"])) {
         if ($ilgili_kayit["Password"] === $password ) {
             // Kullanıcı adı ve e-posta oturuma ekleniyor
             $_SESSION["email"] = $ilgili_kayit["Email"];
+            $_SESSION["kulanici_id"] = $ilgili_kayit["User_id"];
             $_SESSION["kulAdı"] = $ilgili_kayit["FirstName"]; // İsim bilgisini oturuma ekliyoruz
 
             // Ana sayfaya yönlendirme

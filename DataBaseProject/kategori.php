@@ -1,6 +1,16 @@
 <?php
 session_start();
 include("inc/baglan.php");
+
+// Favorilerden ürün silme
+if (isset($_GET['delete'])) {
+    $favorite_id = (int)$_GET['delete'];
+    mysqli_query($baglanti, "DELETE FROM favorites WHERE Favorite_id='$favorite_id'");
+    header("Location: favorites.php");
+    exit();
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -9,6 +19,8 @@ include("inc/baglan.php");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/bootstrap.css">
+    <link rel="stylesheet" href="assets/style.css">
     <title>Kategoriler</title>
 </head>
 
@@ -40,6 +52,7 @@ include("inc/baglan.php");
             <?php
             if (isset($_SESSION["email"])) { // Kullanıcı giriş yaptıysa
                 echo '<p>Hoşgeldiniz, <b>' . htmlspecialchars($_SESSION["kulAdı"]) . '</b></p>';
+                echo '<a href="favorites.php" class="kat_login"">Favorilerim</a>'; // Favorilerim bağlantısı
                 echo '<a href="cart.php" class="kat_login"">Sepetim</a>'; // SEPET bağlantısı
                 echo '<a href="orders.php" class="kat_login"">Siparişlerim</a>'; // Siparişlerim bağlantısı
                 echo '<a href="logout.php" class="kat_logout"">Çıkış Yap</a>'; // Çıkış bağlantısı
