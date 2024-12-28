@@ -3,7 +3,7 @@ session_start();
 include 'inc/baglan.php';
 
 // Kullanıcı giriş kontrolü
-$kul_id = $_SESSION['kulanici_id'] ?? null;
+$kul_id = $_SESSION['kulanici_id'] ?? null; // Kullanıcı ID'sini session'dan al
 
 // Favorilerden ürün silme
 if (isset($_GET['delete'])) {
@@ -23,15 +23,25 @@ if (isset($_GET['delete'])) {
 if (isset($_GET['product_id'])) {
     $product_id = (int)$_GET['product_id'];
 
-    // Favorilerde aynı ürün var mı kontrolü
-    $kontrol = mysqli_query($baglanti, "SELECT * FROM favorites WHERE Supplier_id IS NULL AND Product_id='$product_id'");
-    if (mysqli_num_rows($kontrol) === 0) {
-        // Yoksa favorilere ekle
-        $tarih = date('Y-m-d H:i:s');
-        mysqli_query($baglanti, "INSERT INTO favorites (Supplier_id, Product_id, AddedDate) VALUES (NULL, '$product_id', '$tarih')");
+    // Kullanıcı ID'sini kontrol et
+    if ($kul_id) {
+        // Favorilerde aynı ürün var mı kontrolü
+        $kontrol = mysqli_query($baglanti, "SELECT * FROM favorites WHERE Product_id='$product_id' AND User_id='$kul_id'");
+
+        if (mysqli_num_rows($kontrol) === 0) {
+            // Yoksa favorilere ekle
+            $tarih = date('Y-m-d H:i:s');
+            $insert_sorgu = "INSERT INTO favorites (Product_id, User_id, AddedDate) VALUES ('$product_id', '$kul_id', '$tarih')";
+            if (mysqli_query($baglanti, $insert_sorgu)) {
+                header("Location: favorites.php"); // Başarılı ekleme sonrası favoriler sayfasına yönlendir
+                exit();
+            } else {
+                echo "Favorilere eklerken bir hata oluştu.";
+            }
+        }
+    } else {
+        echo "Giriş yapmadınız, favori ekleme işlemi yapılamaz.";
     }
-    header("Location: favorites.php");
-    exit();
 }
 
 // Favori ürünleri listeleme
@@ -39,9 +49,9 @@ $favoriler = mysqli_query($baglanti, "
     SELECT f.Favorite_id, f.AddedDate, p.ProductName, p.ProductPrice, p.Product_id
     FROM favorites f
     JOIN product p ON f.Product_id = p.Product_id
-    WHERE f.Supplier_id IS NULL
-");
+    WHERE f.User_id = '$kul_id'"); // Kullanıcıya özel favorileri listele
 ?>
+
 
 <!DOCTYPE html>
 <html lang="tr">

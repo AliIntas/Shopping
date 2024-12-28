@@ -18,7 +18,8 @@ if (isset($_POST["submit"])) {
             // Kullanıcı adı ve e-posta oturuma ekleniyor
             $_SESSION["email"] = $ilgili_kayit["Email"];
             $_SESSION["kulanici_id"] = $ilgili_kayit["User_id"];
-            $_SESSION["kulAdı"] = $ilgili_kayit["FirstName"]; // İsim bilgisini oturuma ekliyoruz
+            $_SESSION["kulAdı"] = $ilgili_kayit["FirstName"]; // İsim bilgisini oturuma ekle
+            $_SESSION["customer_id"] = $ilgili_kayit["Customer_id"]; // Customer_id 
 
             // Ana sayfaya yönlendirme
             header("Location: mainpage.php");

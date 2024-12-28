@@ -1,28 +1,29 @@
 <?php
 include 'inc/baglan.php';
 session_start();
+$customer_id = (int)$_SESSION['customer_id'];
 
 // Kullanıcı oturum kontrolü
-if (!isset($_SESSION['kulanici_id'])) {
+if (!isset($_SESSION['kulanici_id']) || !isset($_SESSION['customer_id'])) {
     header("Location: loginPage.php");
     exit();
 }
-
 // Ürün sepete ekleme
-if (isset($_GET['id']) || isset($_GET['add_to_cart'])) {  
-    if (isset($_GET['id'])) {  
-        $urun_id = (int)$_GET['id'];  
-    } elseif (isset($_GET['add_to_cart'])) {  
-        $urun_id = (int)$_GET['add_to_cart'];  
-    }  
+if (isset($_GET['id']) || isset($_GET['add_to_cart'])) {
+    if (isset($_GET['id'])) {
+        $urun_id = (int)$_GET['id'];
+    } elseif (isset($_GET['add_to_cart'])) {
+        $urun_id = (int)$_GET['add_to_cart'];
+        
+    }
     // Sepette ürün var mı kontrolü
-    $urun_kontrol = mysqli_query($baglanti, "SELECT * FROM cart WHERE Product_id='$urun_id'");
+    $urun_kontrol = mysqli_query($baglanti, "SELECT * FROM cart WHERE Product_id='$urun_id' AND Customer_id='$customer_id'");
     if (mysqli_num_rows($urun_kontrol) > 0) {
         // Sepette varsa, Quantity artır
-        mysqli_query($baglanti, "UPDATE cart SET Quantity=Quantity+1 WHERE Product_id='$urun_id'");
+        mysqli_query($baglanti, "UPDATE cart SET Quantity=Quantity+1 WHERE Product_id='$urun_id' AND Customer_id='$customer_id'");
     } else {
         // Sepette yoksa yeni ürün ekle
-        mysqli_query($baglanti, "INSERT INTO cart (Product_id, Quantity) VALUES ('$urun_id', 1)");
+        mysqli_query($baglanti, "INSERT INTO cart (Product_id, Quantity, Customer_id) VALUES ('$urun_id', 1, '$customer_id')");
     }
 
     header("Location: cart.php");
@@ -62,6 +63,21 @@ $urunler = mysqli_query($baglanti, "
     FROM cart c
     JOIN product p ON c.Product_id = p.Product_id
 ");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['payment_method'])) {
+        $payment_method = $_POST['payment_method'];
+        if ($payment_method === 'cashonDelivery') {
+            header("Location: cashonDelivery.php");
+            exit();
+        } elseif ($payment_method === 'onlinePayment') {
+            header("Location: onlinePayment.php");
+            exit();
+        }
+    } else {
+        echo '<p style="color:red;">Lütfen ödeme yöntemini seçin.</p>';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -113,13 +129,24 @@ $urunler = mysqli_query($baglanti, "
                     ?>
                 </table>
                 <?php
-                if ($toplam == 0) {
-                    echo 'Sepette ürün bulunmamaktadır.';
-                } else {
-                    echo '<h4>Toplam: ' . $toplam . ' TL</h4>';
-                    echo '<a href="orders.php" class="btn btn-primary">Satın Al</a>';
-                }
-                ?>
+                if ($toplam > 0): ?>
+                    <h4>Toplam: <?= $toplam ?> TL</h4>
+                    <form method="POST">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="cash_on_delivery" value="cashonDelivery">
+                            <label class="form-check-label" for="cash_on_delivery">Kapıda Ödeme</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="online_payment" value="onlinePayment">
+                            <label class="form-check-label" for="online_payment">Online Ödeme</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Satın Al</button>
+                    </form>
+
+                <?php else: ?>
+                    <p>Sepette ürün bulunmamaktadır.</p>
+                <?php endif; ?>
+
             </div>
         </div>
     </div>
