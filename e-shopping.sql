@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Anamakine: localhost:3307
--- Üretim Zamanı: 25 Ara 2024, 12:48:15
+-- Üretim Zamanı: 28 Ara 2024, 20:23:32
 -- Sunucu sürümü: 10.4.32-MariaDB
 -- PHP Sürümü: 8.2.12
 
@@ -42,11 +42,11 @@ CREATE TABLE `campaign` (
 
 CREATE TABLE `cart` (
   `Cart_id` int(11) NOT NULL,
-  `Supplier_id` int(11) DEFAULT NULL,
   `Quantity` int(11) DEFAULT NULL,
   `Payment_id` int(11) DEFAULT NULL,
   `Product_id` int(11) DEFAULT NULL,
-  `Campaign_id` int(11) DEFAULT NULL
+  `Campaign_id` int(11) DEFAULT NULL,
+  `Customer_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -70,9 +70,16 @@ CREATE TABLE `cashondelivery` (
 
 CREATE TABLE `category` (
   `Category_id` int(11) NOT NULL,
-  `CategoryName` varchar(100) DEFAULT NULL,
-  `Product_id` int(11) DEFAULT NULL
+  `CategoryName` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Tablo döküm verisi `category`
+--
+
+INSERT INTO `category` (`Category_id`, `CategoryName`) VALUES
+(1, 'ELEKTRONİK'),
+(2, 'GİYİM');
 
 -- --------------------------------------------------------
 
@@ -122,8 +129,7 @@ CREATE TABLE `onlinepayment` (
   `Payment_id` int(11) DEFAULT NULL,
   `CardNumber` varchar(16) DEFAULT NULL,
   `ExpiryDate` date DEFAULT NULL,
-  `CVV` varchar(3) DEFAULT NULL,
-  `Amount` decimal(10,2) DEFAULT NULL
+  `CVV` varchar(3) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -140,7 +146,8 @@ CREATE TABLE `orders` (
   `ReturnStatus` tinyint(1) DEFAULT NULL,
   `ReturnReason` text DEFAULT NULL,
   `ReturnDate` date DEFAULT NULL,
-  `Cart_id` int(11) DEFAULT NULL
+  `Payment_id` int(11) DEFAULT NULL,
+  `Product_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -152,8 +159,7 @@ CREATE TABLE `orders` (
 CREATE TABLE `payment` (
   `Payment_id` int(11) NOT NULL,
   `Cart_id` int(11) DEFAULT NULL,
-  `PaymentStatus` varchar(50) DEFAULT NULL,
-  `Supplier_id` int(11) DEFAULT NULL
+  `PaymentStatus` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -168,8 +174,18 @@ CREATE TABLE `product` (
   `ProductDescription` text DEFAULT NULL,
   `ProductPrice` decimal(10,2) DEFAULT NULL,
   `ProductStock` int(11) DEFAULT NULL,
-  `Category_id` int(11) DEFAULT NULL
+  `Category_id` int(11) DEFAULT NULL,
+  `Supplier_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Tablo döküm verisi `product`
+--
+
+INSERT INTO `product` (`Product_id`, `ProductName`, `ProductDescription`, `ProductPrice`, `ProductStock`, `Category_id`, `Supplier_id`) VALUES
+(1, 'telefon', '256gb', 50000.00, 5, NULL, NULL),
+(7, 'pc', '256gb', 6000.00, 3, 1, 1),
+(8, 'victus', '512gb', 9000.00, 9, 1, 3);
 
 -- --------------------------------------------------------
 
@@ -258,10 +274,10 @@ ALTER TABLE `campaign`
 --
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`Cart_id`),
-  ADD KEY `Supplier_id` (`Supplier_id`),
   ADD KEY `FK_payment_Cart` (`Payment_id`),
   ADD KEY `Product_id` (`Product_id`),
-  ADD KEY `Campaign_id` (`Campaign_id`);
+  ADD KEY `Campaign_id` (`Campaign_id`),
+  ADD KEY `CC_Customer_id` (`Customer_id`);
 
 --
 -- Tablo için indeksler `cashondelivery`
@@ -274,8 +290,7 @@ ALTER TABLE `cashondelivery`
 -- Tablo için indeksler `category`
 --
 ALTER TABLE `category`
-  ADD PRIMARY KEY (`Category_id`),
-  ADD KEY `C_Product_id` (`Product_id`);
+  ADD PRIMARY KEY (`Category_id`);
 
 --
 -- Tablo için indeksler `customer`
@@ -304,21 +319,22 @@ ALTER TABLE `onlinepayment`
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`Order_id`),
   ADD KEY `Supplier_id` (`Supplier_id`),
-  ADD KEY `Cart_id` (`Cart_id`);
+  ADD KEY `OP_Payment_id` (`Payment_id`),
+  ADD KEY `OP_Product_Order` (`Product_id`);
 
 --
 -- Tablo için indeksler `payment`
 --
 ALTER TABLE `payment`
   ADD PRIMARY KEY (`Payment_id`),
-  ADD KEY `Cart_id` (`Cart_id`),
-  ADD KEY `Supplier_id` (`Supplier_id`);
+  ADD KEY `Cart_id` (`Cart_id`);
 
 --
 -- Tablo için indeksler `product`
 --
 ALTER TABLE `product`
-  ADD PRIMARY KEY (`Product_id`);
+  ADD PRIMARY KEY (`Product_id`),
+  ADD KEY `PS_Suplier_id` (`Supplier_id`);
 
 --
 -- Tablo için indeksler `services`
@@ -374,7 +390,7 @@ ALTER TABLE `cashondelivery`
 -- Tablo için AUTO_INCREMENT değeri `category`
 --
 ALTER TABLE `category`
-  MODIFY `Category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `customer`
@@ -410,7 +426,7 @@ ALTER TABLE `payment`
 -- Tablo için AUTO_INCREMENT değeri `product`
 --
 ALTER TABLE `product`
-  MODIFY `Product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `services`
@@ -444,22 +460,16 @@ ALTER TABLE `user`
 -- Tablo kısıtlamaları `cart`
 --
 ALTER TABLE `cart`
+  ADD CONSTRAINT `CC_Customer_id` FOREIGN KEY (`Customer_id`) REFERENCES `customer` (`Customer_id`),
   ADD CONSTRAINT `Campaign_id` FOREIGN KEY (`Campaign_id`) REFERENCES `campaign` (`Campaign_id`),
   ADD CONSTRAINT `FK_payment_Cart` FOREIGN KEY (`Payment_id`) REFERENCES `payment` (`Payment_id`),
-  ADD CONSTRAINT `Product_id` FOREIGN KEY (`Product_id`) REFERENCES `product` (`Product_id`),
-  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`Supplier_id`) REFERENCES `supplier` (`Supplier_id`);
+  ADD CONSTRAINT `Product_id` FOREIGN KEY (`Product_id`) REFERENCES `product` (`Product_id`);
 
 --
 -- Tablo kısıtlamaları `cashondelivery`
 --
 ALTER TABLE `cashondelivery`
   ADD CONSTRAINT `cashondelivery_ibfk_1` FOREIGN KEY (`Payment_id`) REFERENCES `payment` (`Payment_id`);
-
---
--- Tablo kısıtlamaları `category`
---
-ALTER TABLE `category`
-  ADD CONSTRAINT `C_Product_id` FOREIGN KEY (`Product_id`) REFERENCES `product` (`Product_id`);
 
 --
 -- Tablo kısıtlamaları `customer`
@@ -483,15 +493,21 @@ ALTER TABLE `onlinepayment`
 -- Tablo kısıtlamaları `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `Cart_id` FOREIGN KEY (`Cart_id`) REFERENCES `cart` (`Cart_id`),
+  ADD CONSTRAINT `OP_Payment_id` FOREIGN KEY (`Payment_id`) REFERENCES `payment` (`Payment_id`),
+  ADD CONSTRAINT `OP_Product_Order` FOREIGN KEY (`Product_id`) REFERENCES `product` (`Product_id`),
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`Supplier_id`) REFERENCES `supplier` (`Supplier_id`);
 
 --
 -- Tablo kısıtlamaları `payment`
 --
 ALTER TABLE `payment`
-  ADD CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`Cart_id`) REFERENCES `cart` (`Cart_id`),
-  ADD CONSTRAINT `payment_ibfk_2` FOREIGN KEY (`Supplier_id`) REFERENCES `supplier` (`Supplier_id`);
+  ADD CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`Cart_id`) REFERENCES `cart` (`Cart_id`);
+
+--
+-- Tablo kısıtlamaları `product`
+--
+ALTER TABLE `product`
+  ADD CONSTRAINT `PS_Suplier_id` FOREIGN KEY (`Supplier_id`) REFERENCES `supplier` (`Supplier_id`);
 
 --
 -- Tablo kısıtlamaları `shipment`
