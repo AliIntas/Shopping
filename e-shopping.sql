@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Anamakine: localhost:3307
--- Üretim Zamanı: 28 Ara 2024, 20:23:32
+-- Üretim Zamanı: 28 Ara 2024, 23:59:49
 -- Sunucu sürümü: 10.4.32-MariaDB
 -- PHP Sürümü: 8.2.12
 
@@ -159,7 +159,8 @@ CREATE TABLE `orders` (
 CREATE TABLE `payment` (
   `Payment_id` int(11) NOT NULL,
   `Cart_id` int(11) DEFAULT NULL,
-  `PaymentStatus` varchar(50) DEFAULT NULL
+  `PaymentStatus` varchar(50) DEFAULT NULL,
+  `Customer_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -183,9 +184,9 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`Product_id`, `ProductName`, `ProductDescription`, `ProductPrice`, `ProductStock`, `Category_id`, `Supplier_id`) VALUES
-(1, 'telefon', '256gb', 50000.00, 5, NULL, NULL),
 (7, 'pc', '256gb', 6000.00, 3, 1, 1),
-(8, 'victus', '512gb', 9000.00, 9, 1, 3);
+(8, 'victus', '512gb', 9000.00, 9, 1, 3),
+(10, 'mac', '256gb', 6000.00, 3, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -327,7 +328,8 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `payment`
   ADD PRIMARY KEY (`Payment_id`),
-  ADD KEY `Cart_id` (`Cart_id`);
+  ADD KEY `Cart_id` (`Cart_id`),
+  ADD KEY `PC_Customer_id` (`Customer_id`);
 
 --
 -- Tablo için indeksler `product`
@@ -426,7 +428,7 @@ ALTER TABLE `payment`
 -- Tablo için AUTO_INCREMENT değeri `product`
 --
 ALTER TABLE `product`
-  MODIFY `Product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `Product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `services`
@@ -501,6 +503,7 @@ ALTER TABLE `orders`
 -- Tablo kısıtlamaları `payment`
 --
 ALTER TABLE `payment`
+  ADD CONSTRAINT `PC_Customer_id` FOREIGN KEY (`Customer_id`) REFERENCES `customer` (`Customer_id`),
   ADD CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`Cart_id`) REFERENCES `cart` (`Cart_id`);
 
 --
