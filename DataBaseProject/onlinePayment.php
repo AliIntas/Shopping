@@ -2,12 +2,12 @@
 include 'inc/baglan.php';
 session_start();
 
-// Kullanıcı oturum kontrolü
 if (!isset($_SESSION['customer_id'])) {
     header("Location: loginPage.php");
     exit();
 }
-$customer_id = (int)$_SESSION['customer_id'];  // customer_id'yi oturumdan alıyoruz
+
+$customer_id = (int)$_SESSION['customer_id'];
 
 // Sepet ürünlerini çek
 $urunler = mysqli_query(
@@ -16,60 +16,66 @@ $urunler = mysqli_query(
     SELECT p.*, c.Quantity, c.Cart_id 
     FROM cart c
     JOIN product p ON c.Product_id = p.Product_id
-    WHERE c.Customer_id = " . $customer_id  // customer_id kullanılıyor
-);
+    WHERE c.Customer_id = $customer_id");
+
 
 $toplam = 0;
+$cart_ids = [];
 
-// Sepet toplamını hesapla ve Cart_id'yi al
 while ($urun = mysqli_fetch_assoc($urunler)) {
     $urun_toplam = $urun['ProductPrice'] * $urun['Quantity'];
     $toplam += $urun_toplam;
-    $cart_id = $urun['Cart_id']; // Cart_id'yi alıyoruz
+    $cart_ids[] = $urun['Cart_id'];
 }
 
-// Ödeme işlemi başlatıldı mı kontrolü
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $card_number = $_POST['card_number'] ?? '';
     $card_holder = $_POST['card_holder'] ?? '';
     $expiry_date = $_POST['expiry_date'] ?? '';
     $cvv = $_POST['cvv'] ?? '';
 
-    // Form doğrulama
     if (empty($card_number) || empty($card_holder) || empty($expiry_date) || empty($cvv)) {
         $error_message = "Lütfen tüm kart bilgilerini doldurun!";
     } elseif ($toplam > 0) {
-        // Veritabanına ödeme bilgilerini kaydetme
-        $payment_id = NULL; // Veritabanı otomatik olarak Payment_id'yi oluşturacak
+        mysqli_begin_transaction($baglanti);
 
-        // 1. Payment tablosuna ödeme kaydını ekleyin
-        $payment_sql = "INSERT INTO payment (Cart_id, PaymentStatus,User_id)
-                        VALUES ('$cart_id', 1,)"; 
+        try {
+            foreach ($cart_ids as $cart_id) {
+                // 1. Payment tablosuna ödeme kaydı ekleme
+                $payment_sql = "INSERT INTO payment (Cart_id, PaymentStatus, Customer_id)
+                                VALUES ('$cart_id', 1, $customer_id)";
+                mysqli_query($baglanti, $payment_sql);
 
-        if (mysqli_query($baglanti, $payment_sql)) {
-            // 2. Onlinepayment tablosuna ödeme kart bilgilerini kaydedin
-            // Op_id veritabanı tarafından otomatik olarak oluşturulacak
-            $onlinepayment_sql = "INSERT INTO onlinepayment (Payment_id, CardNumber, ExpiryDate, CVV)
-            VALUES (LAST_INSERT_ID(), '$card_number', '$expiry_date', '$cvv')";
+                $payment_id = mysqli_insert_id($baglanti);
 
-            if (mysqli_query($baglanti, $onlinepayment_sql)) {
-                // Ödeme başarılıysa sepeti temizle
-                mysqli_query($baglanti, "DELETE FROM cart WHERE Customer_id = $customer_id");
+                // 2. Onlinepayment tablosuna ödeme bilgisi ekleme
+                $onlinepayment_sql = "INSERT INTO onlinepayment (Payment_id, CardNumber, ExpiryDate, CVV)
+                                      VALUES ('$payment_id', '$card_number', '$expiry_date', '$cvv')";
+                mysqli_query($baglanti, $onlinepayment_sql);
 
-                // Sipariş sayfasına yönlendirme
-                header("Location: orders.php");
-                exit();
-            } else {
-                $error_message = "Kart bilgileri kaydedilirken bir hata oluştu.";
+                // 3. Silmeden önce Payment'taki Cart_id alanını NULL yapma
+                $nullify_cart_id_sql = "UPDATE payment SET Cart_id = NULL WHERE Cart_id = '$cart_id'";
+                mysqli_query($baglanti, $nullify_cart_id_sql);
             }
-        } else {
-            $error_message = "Ödeme kaydınız sırasında bir hata oluştu.";
+
+            // 4. Cart tablosundaki kayıtları silme
+            $delete_cart_sql = "DELETE FROM cart WHERE Customer_id = $customer_id";
+            mysqli_query($baglanti, $delete_cart_sql);
+
+            mysqli_commit($baglanti);
+            header("Location: orders.php");
+            exit();
+        } catch (Exception $e) {
+            mysqli_rollback($baglanti);
+            $error_message = "Bir hata oluştu, lütfen tekrar deneyin.";
         }
     } else {
         $error_message = "Sepetiniz boş, ödeme yapılamaz!";
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -97,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST">
                     <div class="form-group">
                         <label for="card_number">Kart Numarası</label>
-                        <input type="text" name="card_number" id="card_number" class="form-control" placeholder="Kart numaranızı giriniz" required>
+                        <input type="text" name="card_number" id="card_number" class="form-control" placeholder="Kart numaranızı giriniz" maxlength="16" required>
                     </div>
 
                     <div class="form-group">

@@ -49,13 +49,28 @@ if (isset($_GET['azalt'])) {
     exit();
 }
 
-// Ürün silme
 if (isset($_GET['sil'])) {
     $urun_id = (int)$_GET['sil'];
+
+    // İlgili Payment_id'yi bul
+    $payment_query = mysqli_query($baglanti, "SELECT Payment_id FROM payment WHERE Cart_id IN (SELECT Cart_id FROM cart WHERE Product_id='$urun_id')");
+    $payment_row = mysqli_fetch_assoc($payment_query);
+    $payment_id = $payment_row['Payment_id'];
+
+    if ($payment_id) {
+        // Önce onlinepayment tablosundan ilişkili kayıtları sil
+        mysqli_query($baglanti, "DELETE FROM onlinepayment WHERE Payment_id='$payment_id'");
+
+        // Ardından payment tablosundan ilişkili kayıtları sil
+        mysqli_query($baglanti, "DELETE FROM payment WHERE Payment_id='$payment_id'");
+    }
+
+    // Son olarak cart tablosundan ürünü sil
     mysqli_query($baglanti, "DELETE FROM cart WHERE Product_id='$urun_id'");
     header("Location: cart.php");
     exit();
 }
+
 
 // Sepet ürünlerini çek
 $urunler = mysqli_query($baglanti, "

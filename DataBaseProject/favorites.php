@@ -5,12 +5,14 @@ include 'inc/baglan.php';
 // Kullanıcı giriş kontrolü
 $kul_id = $_SESSION['kulanici_id'] ?? null; // Kullanıcı ID'sini session'dan al
 
+$customer_id = (int)$_SESSION['customer_id']; // customer_id'yi session'dan al
+
 // Favorilerden ürün silme
 if (isset($_GET['delete'])) {
     $favorite_id = (int)$_GET['delete'];
 
     // Favoriler tablosunda ürün silme
-    $sil_sorgu = "DELETE FROM favorites WHERE Favorite_id = '$favorite_id'";
+    $sil_sorgu = "DELETE FROM favorites WHERE Favorite_id = '$favorite_id' AND Customer_id = '$customer_id'";
     if (mysqli_query($baglanti, $sil_sorgu)) {
         header("Location: favorites.php"); // Başarılı silme sonrası favoriler sayfasına yönlendir
         exit();
@@ -24,14 +26,14 @@ if (isset($_GET['product_id'])) {
     $product_id = (int)$_GET['product_id'];
 
     // Kullanıcı ID'sini kontrol et
-    if ($kul_id) {
+    if ($customer_id) {
         // Favorilerde aynı ürün var mı kontrolü
-        $kontrol = mysqli_query($baglanti, "SELECT * FROM favorites WHERE Product_id='$product_id' AND User_id='$kul_id'");
+        $kontrol = mysqli_query($baglanti, "SELECT * FROM favorites WHERE Product_id='$product_id' AND Customer_id='$customer_id'");
 
         if (mysqli_num_rows($kontrol) === 0) {
             // Yoksa favorilere ekle
             $tarih = date('Y-m-d H:i:s');
-            $insert_sorgu = "INSERT INTO favorites (Product_id, User_id, AddedDate) VALUES ('$product_id', '$kul_id', '$tarih')";
+            $insert_sorgu = "INSERT INTO favorites (Product_id, Customer_id, AddedDate) VALUES ('$product_id', '$customer_id', '$tarih')";
             if (mysqli_query($baglanti, $insert_sorgu)) {
                 header("Location: favorites.php"); // Başarılı ekleme sonrası favoriler sayfasına yönlendir
                 exit();
@@ -49,9 +51,8 @@ $favoriler = mysqli_query($baglanti, "
     SELECT f.Favorite_id, f.AddedDate, p.ProductName, p.ProductPrice, p.Product_id
     FROM favorites f
     JOIN product p ON f.Product_id = p.Product_id
-    WHERE f.User_id = '$kul_id'"); // Kullanıcıya özel favorileri listele
+    WHERE f.Customer_id = '$customer_id'"); // Kullanıcıya özel favorileri listele
 ?>
-
 
 <!DOCTYPE html>
 <html lang="tr">
