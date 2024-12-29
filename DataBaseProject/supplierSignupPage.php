@@ -8,15 +8,30 @@ if (isset($_POST["submit"])) {
     $company_phone_number = ($_POST["phone_number"]);
     $email = ($_POST["eposta"]);
     $password = ($_POST["password"]); // Şifreleme eklenebilir
-    $authorization=2;
-
-    // user tablosuna kayıt ekle
-    $sql_user =" SELECT * FROM user u join supplier s on u.user_id=s.user_id WHERE   email='$email'";
-    if (mysqli_query($baglanti, $sql_user)) {
-        // Son eklenen user_ID değerini al
-        
+    $check_email_query = "SELECT * FROM user WHERE email = '$email'";
+    $result = mysqli_query($baglanti, $check_email_query);
+    if (mysqli_num_rows($result) > 0) {
+        // Eğer kullanıcı varsa, hata mesajı göster
+        echo '<div class="alert alert-danger" role="alert">Bu e-posta adresi zaten kullanılıyor.</div>';
     } else {
-        echo "Kayıt olurken hata oluştu: " . mysqli_error($baglanti);
+        // Yeni kullanıcıyı user tablosuna ekle
+        $insert_user_query = "INSERT INTO user (Email, Password) VALUES ('$email', '$password')";
+        if (mysqli_query($baglanti, $insert_user_query)) {
+            // Son eklenen user_id'yi al
+            $user_id = mysqli_insert_id($baglanti);
+            
+            // Şimdi satıcı bilgilerini supplier tablosuna ekle
+            $insert_supplier_query = "INSERT INTO supplier (User_id,CompanyName, CompanyAddress, CompanyPhone) 
+                                       VALUES ('$user_id', '$name', '$address', '$company_phone_number')";
+            
+            if (mysqli_query($baglanti, $insert_supplier_query)) {
+                echo '<div class="alert alert-success" role="alert">Başarıyla kaydoldunuz! <a href="supplierLoginPage.php">Giriş yapın</a></div>';
+            } else {
+                echo '<div class="alert alert-danger" role="alert">Satıcı bilgileri eklenirken bir hata oluştu.</div>';
+            }
+        } else {
+            echo '<div class="alert alert-danger" role="alert">Kullanıcı kaydı oluşturulurken bir hata oluştu.</div>';
+        }
     }
     mysqli_close($baglanti);
 }

@@ -4,31 +4,34 @@ if (isset($_POST["submit"])) {
     include("inc/baglan.php");
     $email = $_POST["email"];
     $password = ($_POST["password"]);
-    $authorization=2;
-    $secim="SELECT * FROM user u join supplier s on u.user_id=s.user_id WHERE   email='$email'";
+    $secim="SELECT * FROM user u join supplier s on u.User_id=s.User_id WHERE   Email='$email'";
     $calistir=mysqli_query($baglanti,$secim);
-    $kayit_sayisi=mysqli_num_rows($calistir);
-    if ($kayit_sayisi> 0) {
+    if ($calistir && mysqli_num_rows($calistir) > 0) {
+        // Kullanıcı bulundu, bilgileri al
+        $ilgili_kayit = mysqli_fetch_assoc($calistir);
 
-        while($ilgili_kayit=mysqli_fetch_assoc($calistir)){
-            $sifre=$ilgili_kayit["Password"];
-                if ($sifre== $password) {
-                $_SESSION   ["username"] = $username;
-                header("location:mainpage.php");
-                }
-            
-        
+        // Şifre ve yetki kontrolü
+        if ($ilgili_kayit["Password"] == $password ) {
+            // Kullanıcı adı ve e-posta oturuma ekleniyor
+            $_SESSION["email"] = $ilgili_kayit["Email"];
+            $_SESSION["kulanici_id"] = $ilgili_kayit["Supplier_id"];
+            $_SESSION["kulAdı"] = $ilgili_kayit["CompanyName"]; // İsim bilgisini oturuma ekliyoruz
+
+            // Ana sayfaya yönlendirme
+            header("Location: supplierMainPage.php");
+            exit();
+        } else {
+            $hata = "Şifre yanlış veya yetkisiz giriş!";
         }
-        
+    } else {
+        $hata = "Bu e-posta ile kayıtlı kullanıcı bulunamadı!";
     }
-    else{
-        echo '<div class="alert alert-danger"role ="allert">
-        kullanici adi veya şifre yanlış
-        </div>';   
-    }
+    
     mysqli_close($baglanti);   
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="tr">
