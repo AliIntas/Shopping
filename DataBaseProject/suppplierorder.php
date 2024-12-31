@@ -7,19 +7,37 @@ if (!isset($_SESSION['kulanici_id'])) {
     header("Location: supplierLoginPage.php");
     exit;
 }
-$supplierID=$_SESSION["kulanici_id"];
+$supplierID = $_SESSION["kulanici_id"];
 
 // Sipariş onaylama işlemi
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order_id'], $_POST['tracking_number'])) {
     $order_id = intval($_POST['order_id']);
     $tracking_number = mysqli_real_escape_string($baglanti, $_POST['tracking_number']);
 
-    // Shipment tablosuna veri ekle
-    $query = "INSERT INTO shipment (Order_id, TrackingNumber,Supplier_id) VALUES ($order_id, '$tracking_number','$supplierID')";
-    if (mysqli_query($baglanti, $query)) {
-        $success_message = "Sipariş Onaylandı. Kargo numarası kaydedildi.";
+    // Sipariş bilgilerini al
+    $order_query = "SELECT Product_id, Quantity FROM orders WHERE Order_id = $order_id";
+    $order_result = mysqli_query($baglanti, $order_query);
+    
+    if ($order_result && mysqli_num_rows($order_result) > 0) {
+        $order = mysqli_fetch_assoc($order_result);
+        $product_id = $order['Product_id'];
+        $quantity = $order['Quantity'];
+
+        // Shipment tablosuna veri ekle
+        $shipment_query = "INSERT INTO shipment (Order_id, TrackingNumber, Supplier_id) VALUES ($order_id, '$tracking_number', '$supplierID')";
+        if (mysqli_query($baglanti, $shipment_query)) {
+            // ProductStock güncelleme işlemi
+            $update_stock_query = "UPDATE product SET ProductStock = ProductStock - $quantity WHERE Product_id = $product_id";
+            if (mysqli_query($baglanti, $update_stock_query)) {
+                $success_message = "Sipariş Onaylandı. Kargo numarası kaydedildi ve stok güncellendi.";
+            } else {
+                $error_message = "Stok güncellenirken bir hata oluştu: " . mysqli_error($baglanti);
+            }
+        } else {
+            $error_message = "Kargo bilgisi kaydedilirken bir hata oluştu: " . mysqli_error($baglanti);
+        }
     } else {
-        $error_message = "Kargo bilgisi kaydedilirken bir hata oluştu: " . mysqli_error($baglanti);
+        $error_message = "Sipariş bilgisi alınırken bir hata oluştu.";
     }
 }
 
@@ -50,20 +68,19 @@ $result = mysqli_query($baglanti, $query);
 
 <body>
     <div class="baslik">
-        
         <h1><i>Siparişlerim</i></h1>
     </div>
     <div class=" col-md-3 mt-2">
-                <div class="menu">
-                    <h4>Menü</h4>
-                    <ul>
-                        <li><a href="product.php">Ürünlerim</a></li>
-                        <li><a href="suppplierorder.php">Siparişlerim</a></li> <!-- Siparişlerim kısmı eklendi -->
-                        <li><a href="addProduct.php">Yeni Ürün Ekle</a></li>
-                        <li><a href="logout.php">Çıkış Yap</a></li>
-                    </ul>
-                </div>
-            </div>
+        <div class="menu">
+            <h4>Menü</h4>
+            <ul>
+                <li><a href="product.php">Ürünlerim</a></li>
+                <li><a href="suppplierorder.php">Siparişlerim</a></li> <!-- Siparişlerim kısmı eklendi -->
+                <li><a href="addProduct.php">Yeni Ürün Ekle</a></li>
+                <li><a href="logout.php">Çıkış Yap</a></li>
+            </ul>
+        </div>
+    </div>
     <div class="container mt-4">
         <?php if (isset($success_message)) : ?>
             <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>

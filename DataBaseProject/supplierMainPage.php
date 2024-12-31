@@ -48,7 +48,7 @@ if (isset($_POST["ürün_ekle"])) {
                     <h4>Menü</h4>
                     <ul>
                         <li><a href="product.php">Ürünlerim</a></li>
-                        <li><a href="order.php">Siparişlerim</a></li> <!-- Siparişlerim kısmı eklendi -->
+                        <li><a href="suppplierorder.php">Siparişlerim</a></li> <!-- Siparişlerim kısmı eklendi -->
                         <li><a href="addProduct.php">Yeni Ürün Ekle</a></li>
                         <li><a href="logout.php">Çıkış Yap</a></li>
                     </ul>

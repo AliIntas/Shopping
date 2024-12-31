@@ -13,21 +13,26 @@ $satici_id = $_SESSION['kulanici_id']; // Giriş yapan satıcının ID'si
 $sorgu = "SELECT * FROM product WHERE Supplier_id = $satici_id"; // Satıcıya ait ürünler
 $urunler = mysqli_query($baglanti, $sorgu);
 
+// Bildirimleri al
+$bildirim_sorgu = "SELECT Notifications.Message, product.ProductName FROM Notifications INNER JOIN product ON Notifications.Product_id = product.Product_id";
+$bildirimler = mysqli_query($baglanti, $bildirim_sorgu);
+
 // Ürün güncelleme işlemi
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ProductId'])) {
     $productId = $_POST['ProductId'];
     $productName = $_POST['ProductName'];
     $productPrice = $_POST['ProductPrice'];
     $productStock = $_POST['ProductStock'];
+    $productDescription = $_POST['ProductDescription'];
 
     // Ürünü güncelle
-    $update_query = "UPDATE product SET ProductName = ?, ProductPrice = ?, ProductStock = ? WHERE Product_id = ?";
+    $update_query = "UPDATE product SET ProductName = ?, ProductPrice = ?, ProductStock = ?, ProductDescription = ? WHERE Product_id = ?";
     $stmt = $baglanti->prepare($update_query);
-    $stmt->bind_param("sdii", $productName, $productPrice, $productStock, $productId);
+    $stmt->bind_param("sdisi", $productName, $productPrice, $productStock, $productDescription, $productId);
     $stmt->execute();
     $stmt->close();
 
-    echo '<script>alert("Ürün başarıyla güncellendi!"); window.location.href="product.php";</script>';
+    echo '<script>alert("\u00dcr\u00fcn ba\u015far\u0131yla g\u00fcncellendi!"); window.location.href="product.php";</script>';
 }
 
 // Ürün silme işlemi
@@ -41,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['DeleteProductId'])) {
     $stmt->execute();
     $stmt->close();
 
-    echo '<script>alert("Ürün başarıyla silindi!"); window.location.href="product.php";</script>';
+    echo '<script>alert("\u00dcr\u00fcn ba\u015far\u0131yla silindi!"); window.location.href="product.php";</script>';
 }
 ?>
 
@@ -78,18 +83,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['DeleteProductId'])) {
                 <div class="content">
                     <h2>Satıcı Ürünleri</h2>
 
+                    <!-- Bildirimler -->
+                    <!-- Bildirimler -->
+                    <div class="alerts">
+                        <h4>Bildirimler</h4>
+                        <?php
+                        if ($bildirimler && mysqli_num_rows($bildirimler) > 0) {
+                            echo '<ul>';
+                            while ($bildirim = mysqli_fetch_assoc($bildirimler)) {
+                                echo '<li> Ürün: ' . htmlspecialchars($bildirim['ProductName']) . ' - ' . htmlspecialchars($bildirim['Message']) . '</li>';
+                            }
+                            echo '</ul>';
+                        } else {
+                            echo '<p>Hiçbir bildirim bulunmamaktadır.</p>';
+                        }
+                        ?>
+                    </div>
+
+
+                    <!-- Ürün listesi -->
                     <?php
                     if ($urunler && mysqli_num_rows($urunler) > 0) {
                         echo '<div class="row">';
                         while ($urun = mysqli_fetch_assoc($urunler)) {
+                            $stok_uyarisi = ($urun['ProductStock'] < 10) ? '<span class="text-danger">(Stok Kritik!)</span>' : '';
                             echo '<div class="col-md-3">';
                             echo '<div class="card mb-4">';
                             echo '<div class="card-body">';
                             echo '<h5 class="card-title product-name">' . htmlspecialchars($urun["ProductName"]) . '</h5>';
+                            echo '<p class="card-text product-description">Açıklama: ' . htmlspecialchars($urun["ProductDescription"]) . '</p>';
                             echo '<p class="card-text product-price">Fiyat: ' . htmlspecialchars($urun["ProductPrice"]) . ' TL</p>';
-                            echo '<p class="card-text product-stock">Stok: ' . htmlspecialchars($urun["ProductStock"]) . '</p>';
+                            echo '<p class="card-text product-stock">Stok: ' . htmlspecialchars($urun["ProductStock"]) . ' ' . $stok_uyarisi . '</p>';
                             // Düzenle butonu
-                            echo '<button class="btn btn-warning" data-toggle="modal" data-target="#editModal" onclick="fillEditForm(' . $urun["Product_id"] . ')">Düzenle</button>';
+                            echo '<button class="btn btn-warning" data-toggle="modal" data-target="#editModal" onclick="fillEditForm(' . $urun["Product_id"] . ')">Ürünü Düzenle</button>';
                             // Silme formu
                             echo '<form method="POST" class="mt-2" action="" style="display:inline;">
                                     <input type="hidden" name="DeleteProductId" value="' . $urun["Product_id"] . '">
@@ -134,6 +160,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['DeleteProductId'])) {
                             <label for="editProductStock">Stok Miktarı:</label>
                             <input type="number" class="form-control" id="editProductStock" name="ProductStock" required>
                         </div>
+                        <div class="form-group">
+                            <label for="editProductDescription">Açıklama:</label>
+                            <textarea class="form-control" id="editProductDescription" name="ProductDescription" rows="3" required></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Güncelle</button>
@@ -152,17 +182,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['DeleteProductId'])) {
     <script>
         // Modal formu doldurmak için JavaScript
         function fillEditForm(productId) {
-            // Ürün bilgilerini almak için PHP'yi kullanıyoruz.
             var row = document.querySelector('button[data-target="#editModal"][onclick*="' + productId + '"]').closest('.card-body');
             var productName = row.querySelector('.product-name').innerText;
             var productPrice = row.querySelector('.product-price').innerText.replace("Fiyat: ", "").replace(" TL", "");
             var productStock = row.querySelector('.product-stock').innerText.replace("Stok: ", "");
+            var productDescription = row.querySelector('.product-description').innerText.replace("Açıklama: ", "");
 
-            // Modal input'larını form alanları ile doldurma
             document.getElementById('editProductId').value = productId;
             document.getElementById('editProductName').value = productName;
             document.getElementById('editProductPrice').value = productPrice;
             document.getElementById('editProductStock').value = productStock;
+            document.getElementById('editProductDescription').value = productDescription;
         }
     </script>
 </body>

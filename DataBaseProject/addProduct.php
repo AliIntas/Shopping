@@ -13,12 +13,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $productName = mysqli_real_escape_string($baglanti, $_POST['productName']);
     $productPrice = mysqli_real_escape_string($baglanti, $_POST['productPrice']);
     $productStock = mysqli_real_escape_string($baglanti, $_POST['productStock']);
+    $productDescription = mysqli_real_escape_string($baglanti, $_POST['productDescription']);
     $categoryID = mysqli_real_escape_string($baglanti, $_POST['categoryID']);
     $sellerID = $_SESSION['kulanici_id']; // Giriş yapan satıcının ID'si
 
     // Ürün ekleme sorgusu
-    $query = "INSERT INTO product (ProductName, ProductPrice, ProductStock, Category_id, Supplier_id) 
-              VALUES ('$productName', '$productPrice', '$productStock', '$categoryID', '$sellerID')";
+    $query = "INSERT INTO product (ProductName, ProductPrice, ProductStock, ProductDescription, Category_id, Supplier_id) 
+              VALUES ('$productName', '$productPrice', '$productStock', '$productDescription', '$categoryID', '$sellerID')";
 
     if (mysqli_query($baglanti, $query)) {
         $message = "Ürün başarıyla eklendi.";
@@ -73,6 +74,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="form-group">
                         <label for="productStock">Stok Miktarı</label>
                         <input type="number" class="form-control" id="productStock" name="productStock" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Ürün Açıklaması</label>
+                        <textarea class="form-control" id="productDescription" name="productDescription" rows="3" required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="categoryID">Kategori</label>
