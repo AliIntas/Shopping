@@ -26,7 +26,7 @@ if (isset($_GET['delete'])) {
 
 <body>
 <div class="kategori"> <!-- DB'den kategoriler alınacak -->
-    <div>
+    <div class="m-1">
         
             <h3>Kategoriler</h3>
             <ul>

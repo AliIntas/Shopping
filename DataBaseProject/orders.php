@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_order_id'], $_
                                 <th>Kargo Durumu</th>
                                 <th>İade Durumu</th>
                                 <th>İade Sebebi</th>
-                                <th>İade Tarihi</th>
+                                <th style="width: 100px;">İade Tarihi</th>
                                 <th>İade Et</th>
                             </tr>
                         </thead>
@@ -133,15 +133,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_order_id'], $_
 
                                         if (!empty($shipment['TrackingNumber'])) {
                                             echo htmlspecialchars($shipment['TrackingNumber']);
-                                        } else {
+                                        } else if($order['ReturnStatus'] == 1){
+                                            echo "Sipariş iade edildi.";
+                                        } 
+                                        else{
                                             echo "Sipariş alındı, kargoya verilecek";
                                         }
                                         ?>
                                     </td>
 
-                                    <td><?= $order['ReturnStatus'] ? $order['ReturnStatus'] : 'Henüz iade edilmedi' ?></td>
-                                    <td><?= $order['ReturnReason'] ? $order['ReturnReason'] : 'N/A' ?></td>
-                                    <td><?= $order['ReturnDate'] ? $order['ReturnDate'] : 'N/A' ?></td>
+                                    <td><?= $order['ReturnStatus'] ? $order['ReturnStatus'] : 'İade edilmedi' ?></td>
+                                    <td><?= $order['ReturnReason'] ? $order['ReturnReason'] : ' N/A ' ?></td>
+                                    <td><?= $order['ReturnDate'] ? $order['ReturnDate'] : ' N/A ' ?></td>
                                     <td>
                                         <?php if ($order['ReturnStatus'] == NULL): ?>
                                             <form method="POST" action="orders.php">

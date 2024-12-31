@@ -49,11 +49,12 @@ $kat_id = isset($_GET['kat_id']) ? (int)$_GET['kat_id'] : 0; // Eğer parametre 
                             echo '<h5 class="card-title">' . htmlspecialchars($urun["ProductName"]) . '</h5>';
                             echo '<p class="card-text">Fiyat: ' . htmlspecialchars($urun["ProductPrice"]) . ' TL</p>';
                             echo '<p class="card-text">Stok: ' . htmlspecialchars($urun["ProductStock"]) . '</p>';
+                            echo '<p class="card-text">Ürün Açıklaması: ' . htmlspecialchars($urun["ProductDescription"]) . '</p>';
                             // Favorilere ekle butonu
                             if (isset($_SESSION['kulanici_id'])) {
-                                echo '<a href="favorites.php?product_id=' . htmlspecialchars($urun["Product_id"]) . '" class="btn btn-primary ml-3">Favorilere Ekle</a>';
+                                echo '<a href="favorites.php?product_id=' . htmlspecialchars($urun["Product_id"]) . '" class="btn btn-primary mr-3">Favorilere Ekle</a>';
                             } else {
-                                echo '<a href="loginPage.php" class="btn btn-secondary ml-3">Favorilere Ekle</a>';
+                                echo '<a href="loginPage.php" class="btn btn-secondary p-2">Favorilere Ekle</a>';
                             }
                             if (isset($_SESSION['email'])) {
                                 echo '<a href="cart.php?id=' . htmlspecialchars($urun["Product_id"]) . '" class="btn btn-success ml-3">Sepete Ekle</a>';

@@ -4,7 +4,7 @@ session_start();
 
 // Kullanıcı oturumu kontrolü
 if (!isset($_SESSION['kulanici_id'])) {
-    header("Location: supplierLoginPage.php"); // Giriş sayfasına yönlendirin.
+    header("Location: supplierLoginPage.php"); // Giriş sayfasına yönlendir
     exit;
 }
 
