@@ -14,7 +14,6 @@ if (isset($_GET['id']) || isset($_GET['add_to_cart'])) {
         $urun_id = (int)$_GET['id'];
     } elseif (isset($_GET['add_to_cart'])) {
         $urun_id = (int)$_GET['add_to_cart'];
-        
     }
     // Sepette ürün var mı kontrolü
     $urun_kontrol = mysqli_query($baglanti, "SELECT * FROM cart WHERE Product_id='$urun_id' AND Customer_id='$customer_id'");
@@ -52,24 +51,30 @@ if (isset($_GET['azalt'])) {
 if (isset($_GET['sil'])) {
     $urun_id = (int)$_GET['sil'];
 
-    // İlgili Payment_id'yi bul
+    // Sepetteki ürüne ait ödeme (payment) kaydı olup olmadığını kontrol et
     $payment_query = mysqli_query($baglanti, "SELECT Payment_id FROM payment WHERE Cart_id IN (SELECT Cart_id FROM cart WHERE Product_id='$urun_id')");
     $payment_row = mysqli_fetch_assoc($payment_query);
     $payment_id = $payment_row['Payment_id'];
 
+    // Eğer ödeme kaydı varsa ve ödeme yapılmışsa, payment tablosu ve diğer ilişkili kayıtları sil
     if ($payment_id) {
-        // Önce onlinepayment tablosundan ilişkili kayıtları sil
+        // Önce onlinepayment tablosundaki ilişkili kayıtları sil
         mysqli_query($baglanti, "DELETE FROM onlinepayment WHERE Payment_id='$payment_id'");
 
-        // Ardından payment tablosundan ilişkili kayıtları sil
+        // Ardından payment tablosundaki ilişkili kayıtları sil
         mysqli_query($baglanti, "DELETE FROM payment WHERE Payment_id='$payment_id'");
+
+        // İlgili siparişleri sil
+        mysqli_query($baglanti, "DELETE FROM orders WHERE Payment_id='$payment_id'");
     }
 
-    // Son olarak cart tablosundan ürünü sil
+    // Sepetten ürünü sil
     mysqli_query($baglanti, "DELETE FROM cart WHERE Product_id='$urun_id'");
+
     header("Location: cart.php");
     exit();
 }
+
 
 
 // Sepet ürünlerini çek
@@ -107,6 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
+    <div class="baslik ">
+        <h1><i>Alışverişin Adresi</i></h1>
+    </div>
     <div class="container mt-5">
         <h2>Sepetim</h2>
         <div class="row h-100">

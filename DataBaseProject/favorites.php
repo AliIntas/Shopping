@@ -66,6 +66,9 @@ $favoriler = mysqli_query($baglanti, "
 </head>
 
 <body>
+    <div class="baslik ">
+        <h1><i>Alışverişin Adresi</i></h1>
+    </div>
     <div class="container mt-5">
         <h2>Favorilerim</h2>
         <div class="row h-100">
