@@ -8,6 +8,37 @@ if (!isset($_SESSION['kulanici_id'])) {
     exit;
 }
 $supplierID = $_SESSION["kulanici_id"];
+// Sipariş onaylama işlemi
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order_id'], $_POST['tracking_number'])) {
+    $order_id = intval($_POST['order_id']);
+    $tracking_number = mysqli_real_escape_string($baglanti, $_POST['tracking_number']);
+
+    // Sipariş bilgilerini al
+    $order_query = "SELECT Product_id, Quantity FROM orders WHERE Order_id = $order_id";
+    $order_result = mysqli_query($baglanti, $order_query);
+
+    if ($order_result && mysqli_num_rows($order_result) > 0) {
+        $order = mysqli_fetch_assoc($order_result);
+        $product_id = $order['Product_id'];
+        $quantity = $order['Quantity'];
+
+        // Shipment tablosuna veri ekle
+        $shipment_query = "INSERT INTO shipment (Order_id, TrackingNumber, Supplier_id) VALUES ($order_id, '$tracking_number', '$supplierID')";
+        if (mysqli_query($baglanti, $shipment_query)) {
+            // ProductStock güncelleme işlemi
+            $update_stock_query = "UPDATE product SET ProductStock = ProductStock - $quantity WHERE Product_id = $product_id";
+            if (mysqli_query($baglanti, $update_stock_query)) {
+                $success_message = "Sipariş Onaylandı. Kargo numarası kaydedildi ve stok güncellendi.";
+            } else {
+                $error_message = "Stok güncellenirken bir hata oluştu: " . mysqli_error($baglanti);
+            }
+        } else {
+            $error_message = "Kargo bilgisi kaydedilirken bir hata oluştu: " . mysqli_error($baglanti);
+        }
+    } else {
+        $error_message = "Sipariş bilgisi alınırken bir hata oluştu.";
+    }
+}
 
 // Son 10 Günlük Satışlar İçin Cursor Kullanarak Verileri Çekme
 $query = "CALL GetRecentSales(?)";  // Burada prosedür adını "GetRecentSales" olarak kullandık

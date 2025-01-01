@@ -9,13 +9,23 @@ if (!isset($_SESSION['customer_id'])) {
 }
 $customer_id = (int)$_SESSION['customer_id'];
 
-// Sepet silme kontrolü
-if (isset($_GET['payment_done']) && $_GET['payment_done'] == '1') {
-    // Sepeti sil
-    $delete_cart_sql = "DELETE FROM cart WHERE Customer_id = ?";
-    $stmt_delete_cart = mysqli_prepare($baglanti, $delete_cart_sql);
-    mysqli_stmt_bind_param($stmt_delete_cart, 'i', $customer_id);
-    mysqli_stmt_execute($stmt_delete_cart);
+// MySQL prosedürünü çağırarak iade işlemini başlatma
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_order_id'], $_POST['return_reason'])) {
+    $return_order_id = (int)$_POST['return_order_id'];
+    $return_reason = mysqli_real_escape_string($baglanti, $_POST['return_reason']);
+    $return_date = date('Y-m-d'); // İade tarihi için bugünün tarihi
+
+    // Cursor işlemini çağıran prosedür
+    $return_call_query = "CALL ProcessReturnWithCursor(?, ?, ?, ?)";
+    $stmt_return_call = mysqli_prepare($baglanti, $return_call_query);
+    mysqli_stmt_bind_param($stmt_return_call, 'iiss', $return_order_id, $customer_id, $return_reason, $return_date);
+
+    if (mysqli_stmt_execute($stmt_return_call)) {
+        $success_message = "İade işlemi başarıyla tamamlandı (Cursor ile).";
+    } else {
+        $error_message = "İade işlemi sırasında bir hata oluştu.";
+    }
+    mysqli_stmt_close($stmt_return_call);
 }
 
 // Siparişleri müşteri kimliğine göre al
@@ -47,29 +57,6 @@ $stmt = mysqli_prepare($baglanti, $order_query);
 mysqli_stmt_bind_param($stmt, 'i', $customer_id);
 mysqli_stmt_execute($stmt);
 $order_result = mysqli_stmt_get_result($stmt);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_order_id'], $_POST['return_reason'])) {
-    $return_order_id = (int)$_POST['return_order_id'];
-    $return_reason = mysqli_real_escape_string($baglanti, $_POST['return_reason']);
-    $return_date = date('Y-m-d'); // İade tarihi için bugünün tarihi
-
-    $return_update_query = "
-        UPDATE orders
-        SET ReturnStatus = 1, ReturnReason = ?, ReturnDate = ?
-        WHERE Order_id = ? AND Customer_id = ?
-    ";
-    $stmt_return_update = mysqli_prepare($baglanti, $return_update_query);
-    mysqli_stmt_bind_param($stmt_return_update, 'ssii', $return_reason, $return_date, $return_order_id, $customer_id);
-
-    if (mysqli_stmt_execute($stmt_return_update)) {
-        $success_message = "İade işlemi başarıyla kaydedildi.";
-    } else {
-        $error_message = "İade işlemi sırasında bir hata oluştu.";
-    }
-    header("Location: orders.php");
-}
-
-
 ?>
 
 <!DOCTYPE html>
@@ -114,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_order_id'], $_
                             <?php while ($order = mysqli_fetch_assoc($order_result)): ?>
                                 <tr>
                                     <td><?= $order['Order_id'] ?></td>
-                                    <td><?= $order['SupplierName'] ?></td> <!-- Tedarikçi adı burada gösterilecek -->
+                                    <td><?= $order['SupplierName'] ?></td>
                                     <td><?= $order['OrderDate'] ?></td>
                                     <td><?= number_format($order['TotalPrice'], 2) ?> TL</td>
 
