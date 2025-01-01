@@ -18,7 +18,7 @@ if (isset($_POST["submit"])) {
             $_SESSION["kulAdı"] = $ilgili_kayit["CompanyName"]; // İsim bilgisini oturuma ekliyoruz
 
             // Ana sayfaya yönlendirme
-            header("Location: supplierMainPage.php");
+            header("Location:product.php");
             exit();
         } else {
             $hata = "Şifre yanlış veya yetkisiz giriş!";

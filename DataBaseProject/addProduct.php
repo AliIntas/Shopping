@@ -46,18 +46,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <div class="anaEkran">
         <div class="row h-100">
-            <div class="col-md-3 mt-2">
+            <div class="col-md-2 mt-2">
                 <div class="menu">
                     <h4>Menü</h4>
                     <ul>
                         <li><a href="product.php">Ürünlerim</a></li>
+                        <li><a href="services.php">Hizmetlerim</a></li>
                         <li><a href="suppplierorder.php">Siparişlerim</a></li>
                         <li><a href="addProduct.php">Yeni Ürün Ekle</a></li>
+                        <li><a href="addServices.php">Yeni Hizmet Ekle</a></li>
                         <li><a href="logout.php">Çıkış Yap</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="col-md-9 mt-2">
+            <div class="col-md-10 mt-2">
                 <h2>Ürün Bilgilerini Girin</h2>
                 <?php if (isset($message)) { ?>
                     <div class="alert alert-info"><?php echo $message; ?></div>

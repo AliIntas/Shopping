@@ -14,7 +14,7 @@ $sorgu = "SELECT * FROM product WHERE Supplier_id = $satici_id"; // Satıcıya a
 $urunler = mysqli_query($baglanti, $sorgu);
 
 // Bildirimleri al
-$bildirim_sorgu = "SELECT Notifications.Message, product.ProductName FROM Notifications INNER JOIN product ON Notifications.Product_id = product.Product_id";
+$bildirim_sorgu = "SELECT Notifications.Message, product.ProductName FROM Notifications INNER JOIN product   ON Notifications.Product_id = product.Product_id and product.Supplier_id='$satici_id'";
 $bildirimler = mysqli_query($baglanti, $bildirim_sorgu);
 
 // Ürün güncelleme işlemi
@@ -67,19 +67,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['DeleteProductId'])) {
     </div>
     <div class="anaEkran">
         <div class="row h-100">
-            <div class="col-md-3 mt-2">
+            <div class="col-md-2 mt-2">
                 <div class="menu">
                     <h4>Menü</h4>
                     <ul>
                         <li><a href="product.php">Ürünlerim</a></li>
+                        <li><a href="services.php">Hizmetlerim</a></li>
                         <li><a href="suppplierorder.php">Siparişlerim</a></li>
                         <li><a href="addProduct.php">Yeni Ürün Ekle</a></li>
+                        <li><a href="addServices.php">Yeni Hizmet Ekle</a></li>
                         <li><a href="logout.php">Çıkış Yap</a></li>
                     </ul>
                 </div>
             </div>
 
-            <div class="col-md-9 mt-2">
+            <div class="col-md-10 mt-2">
                 <div class="content">
                     <h2>Satıcı Ürünleri</h2>
 

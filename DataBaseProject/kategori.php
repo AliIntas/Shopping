@@ -30,7 +30,9 @@ if (isset($_GET['delete'])) {
         
             <h3>Kategoriler</h3>
             <ul>
-            <li><a href="?kat_id=0">Tüm Ürünler</a></li>
+            <a href="mainservices.php">Servisler</a>
+            <li><a href="mainpage.php?kat_id=0">Tüm Ürünler</a></li>
+            
                 <?php
                 // Kategorileri al
                 $kategoriler = $baglanti->query("SELECT * FROM category");
