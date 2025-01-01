@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Anamakine: localhost:3307
--- Üretim Zamanı: 31 Ara 2024, 10:52:33
+-- Üretim Zamanı: 01 Oca 2025, 11:58:01
 -- Sunucu sürümü: 10.4.32-MariaDB
 -- PHP Sürümü: 8.2.12
 
@@ -20,6 +20,52 @@ SET time_zone = "+00:00";
 --
 -- Veritabanı: `e-shopping`
 --
+
+DELIMITER $$
+--
+-- Yordamlar
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetRecentSales` (IN `supplierID` INT)   BEGIN
+    SELECT 
+        o.TotalPrice,
+        o.Quantity
+    FROM orders o
+    WHERE o.Supplier_id = supplierID 
+    AND o.OrderDate >= CURDATE() - INTERVAL 10 DAY;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `ProcessReturnWithCursor` (IN `p_order_id` INT, IN `p_customer_id` INT, IN `p_return_reason` VARCHAR(255), IN `p_return_date` DATE)   BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE prod_id INT;
+    DECLARE qty INT;
+    DECLARE cur CURSOR FOR SELECT Product_id, Quantity FROM orders WHERE Order_id = p_order_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- İlgili sipariş kaydını güncelle
+    UPDATE orders
+    SET ReturnStatus = 1, ReturnReason = p_return_reason, ReturnDate = p_return_date
+    WHERE Order_id = p_order_id AND Customer_id = p_customer_id;
+
+    -- Cursor işlemi başlat
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO prod_id, qty;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Ürün stok miktarını artır
+        UPDATE product
+        SET ProductStock = ProductStock + qty
+        WHERE Product_id = prod_id;
+    END LOOP;
+
+    CLOSE cur;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -60,7 +106,7 @@ CREATE TABLE `cart` (
 --
 
 INSERT INTO `cart` (`Cart_id`, `Quantity`, `Product_id`, `Customer_id`, `Campaign_id`) VALUES
-(16, 1, 21, 6, NULL);
+(28, 6, 8, 6, NULL);
 
 -- --------------------------------------------------------
 
@@ -80,13 +126,11 @@ CREATE TABLE `cashondelivery` (
 --
 
 INSERT INTO `cashondelivery` (`CoD_id`, `Payment_id`, `PaymentCode`, `Amount`) VALUES
-(1, 4, '904504', 14995.00),
-(2, 5, '261706', 14995.00),
-(3, 7, '607439', 11023.00),
-(4, 8, '113395', 11023.00),
-(5, 9, '621978', 9000.00),
-(6, 14, '932548', 9000.00),
-(7, 15, '258252', 9000.00);
+(10, 22, '277460', 9000.00),
+(11, 24, '772191', 36000.00),
+(12, 25, '781043', 27000.00),
+(13, 26, '747840', 54000.00),
+(14, 27, '252347', 54000.00);
 
 -- --------------------------------------------------------
 
@@ -129,7 +173,8 @@ CREATE TABLE `customer` (
 
 INSERT INTO `customer` (`Customer_id`, `User_id`, `FirstName`, `LastName`, `Phone`, `Address`, `BirthDate`) VALUES
 (6, 1, 'Ahmet emre ', 'Akın', '05465657109', 'Adıyaman Besni ', '2002-06-21'),
-(7, 3, 'volkan', 'yalvarıcı', '05892362178', 'izmir', '2001-09-15');
+(7, 3, 'volkan', 'yalvarıcı', '05892362178', 'izmir', '2001-09-15'),
+(8, 7, 'Ali', 'İntaş', '5555555554', 'Ordu altınordu ', '2024-12-01');
 
 -- --------------------------------------------------------
 
@@ -150,7 +195,8 @@ CREATE TABLE `favorites` (
 --
 
 INSERT INTO `favorites` (`Favorite_id`, `Product_id`, `AddedDate`, `Notes`, `Customer_id`) VALUES
-(1, 8, '2024-12-29', NULL, 6);
+(1, 8, '2024-12-29', NULL, 6),
+(3, 8, '2024-12-31', NULL, 8);
 
 -- --------------------------------------------------------
 
@@ -164,6 +210,13 @@ CREATE TABLE `notifications` (
   `Product_id` int(11) NOT NULL,
   `Created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Tablo döküm verisi `notifications`
+--
+
+INSERT INTO `notifications` (`Notification_id`, `Message`, `Product_id`, `Created_at`) VALUES
+(8, 'Stok kritik seviyede!', 21, '2024-12-31 10:14:46');
 
 -- --------------------------------------------------------
 
@@ -184,14 +237,7 @@ CREATE TABLE `onlinepayment` (
 --
 
 INSERT INTO `onlinepayment` (`Op_id`, `Payment_id`, `CardNumber`, `ExpiryDate`, `CVV`) VALUES
-(1, 2, '2622222222222222', '22/66', '123'),
-(2, 3, '2622222222222222', '22/66', '123'),
-(3, 6, '2313212313213212', '25/56', '212'),
-(4, 10, '1321321231231231', '21/56', '132'),
-(5, 11, '1321231321321321', '21/65', '211'),
-(6, 12, '1231233333333333', '21/06', '211'),
-(7, 13, '1111111111111111', '1321', 'asd'),
-(8, 16, '1221321312312312', '1231/', '231');
+(12, 23, '1111111111111111', '12/24', '111');
 
 -- --------------------------------------------------------
 
@@ -218,7 +264,12 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`Order_id`, `Supplier_id`, `OrderDate`, `TotalPrice`, `ReturnStatus`, `ReturnReason`, `ReturnDate`, `Payment_id`, `Product_id`, `Quantity`, `Customer_id`) VALUES
-(1, 1, '2024-12-30', 9000.00, NULL, NULL, NULL, 2, 8, 1, 6);
+(8, 3, '2024-12-31', 9000.00, 1, 'yanlış aldım.', '2024-12-31', 22, 8, 1, 8),
+(9, 1, '2024-12-31', 132123.00, 1, 'almadım.', '2024-12-31', 23, 21, 1, 8),
+(10, 3, '2024-12-31', 36000.00, NULL, NULL, NULL, 24, 8, 4, 8),
+(11, 3, '2025-01-01', 27000.00, 1, 'asda', '2025-01-01', 25, 8, 3, 6),
+(12, 3, '2025-01-01', 54000.00, 1, 'sevmedim', '2025-01-01', 26, 8, 6, 6),
+(13, 3, '2025-01-01', 54000.00, 1, 'sasdaksldşa', '2025-01-01', 27, 8, 6, 6);
 
 -- --------------------------------------------------------
 
@@ -238,22 +289,12 @@ CREATE TABLE `payment` (
 --
 
 INSERT INTO `payment` (`Payment_id`, `Cart_id`, `PaymentStatus`, `Customer_id`) VALUES
-(1, NULL, 'ödendi', 6),
-(2, NULL, '1', 6),
-(3, NULL, '1', 6),
-(4, NULL, '1', 6),
-(5, NULL, '1', 6),
-(6, NULL, '1', 6),
-(7, NULL, '1', 6),
-(8, NULL, '1', 6),
-(9, NULL, '1', 6),
-(10, NULL, '1', 6),
-(11, NULL, '1', 6),
-(12, NULL, '1', 6),
-(13, NULL, '1', 6),
-(14, NULL, '1', 6),
-(15, NULL, '1', 6),
-(16, NULL, '1', 6);
+(22, NULL, '1', 8),
+(23, NULL, '1', 8),
+(24, NULL, '1', 8),
+(25, NULL, '1', 6),
+(26, NULL, '1', 6),
+(27, NULL, '1', 6);
 
 -- --------------------------------------------------------
 
@@ -276,8 +317,8 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`Product_id`, `ProductName`, `ProductDescription`, `ProductPrice`, `ProductStock`, `Category_id`, `Supplier_id`) VALUES
-(8, 'victus', '512gb', 9000.00, 9, 1, 3),
-(21, 'PC', '2232323', 132123.00, 51, 1, 1);
+(8, 'victus', '512gb', 9000.00, 46, 1, 3),
+(21, 'PC', '2232323', 132123.00, 5, 1, 1);
 
 --
 -- Tetikleyiciler `product`
@@ -339,7 +380,9 @@ CREATE TABLE `shipment` (
 --
 
 INSERT INTO `shipment` (`Shipment_id`, `Order_id`, `TrackingNumber`, `Supplier_id`) VALUES
-(5, 1, '266262', 1);
+(12, 12, '465465', 3),
+(13, 10, '46546565', 3),
+(14, 13, '54654654', 3);
 
 -- --------------------------------------------------------
 
@@ -385,7 +428,8 @@ INSERT INTO `user` (`User_id`, `Email`, `Password`) VALUES
 (2, 'turkcell@gmail.com', '12345'),
 (3, 'volkanyalvarici@gmail.com', '12345'),
 (5, 'hp@gmail.com', '12345'),
-(6, 'hp1@gmail.com', '12345');
+(6, 'hp1@gmail.com', '12345'),
+(7, 'ali@intas.com', '123');
 
 -- --------------------------------------------------------
 
@@ -524,13 +568,13 @@ ALTER TABLE `campaign`
 -- Tablo için AUTO_INCREMENT değeri `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `Cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `Cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `cashondelivery`
 --
 ALTER TABLE `cashondelivery`
-  MODIFY `CoD_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `CoD_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `category`
@@ -542,37 +586,37 @@ ALTER TABLE `category`
 -- Tablo için AUTO_INCREMENT değeri `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `Customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `Customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `favorites`
 --
 ALTER TABLE `favorites`
-  MODIFY `Favorite_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `Favorite_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `Notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `Notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `onlinepayment`
 --
 ALTER TABLE `onlinepayment`
-  MODIFY `Op_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `Op_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `Order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `Order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `Payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `Payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `product`
@@ -590,7 +634,7 @@ ALTER TABLE `services`
 -- Tablo için AUTO_INCREMENT değeri `shipment`
 --
 ALTER TABLE `shipment`
-  MODIFY `Shipment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `Shipment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `supplier`
@@ -602,7 +646,7 @@ ALTER TABLE `supplier`
 -- Tablo için AUTO_INCREMENT değeri `user`
 --
 ALTER TABLE `user`
-  MODIFY `User_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `User_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Dökümü yapılmış tablolar için kısıtlamalar
