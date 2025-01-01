@@ -281,3 +281,28 @@ html, body {
         transform: rotate(360deg);
     }
 }
+
+.menu {
+    background-color: #F8F9FA; /* Hafif gri arka plan */
+    border-right: 2px solid #ddd; /* Sağ tarafa çizgi */
+    padding: 10px;
+    height: 100%; /* Tam yüksekliğe uzanması */
+}
+
+.menu ul {
+    padding: 10px;
+    list-style: none; /* Noktaları kaldırmak için */
+}
+
+.menu a {
+    display: inline; /* Düğme görünümünü kaldırmak için */
+    text-decoration: none; /* Alt çizgiyi kaldırır */
+    color: black; /* Metin rengini siyah yapar */
+    padding: 0; /* Düğme stilinden kaynaklanan boşlukları kaldırır */
+    background-color: transparent; /* Arka plan rengini kaldırır */
+    border-radius: 0; /* Köşeleri düz yapar */
+}
+
+.menu a:hover {
+    text-decoration: underline; /* Üzerine gelindiğinde alt çizgi ekler */
+}
