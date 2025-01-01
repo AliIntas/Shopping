@@ -8,37 +8,6 @@ if (!isset($_SESSION['kulanici_id'])) {
     exit;
 }
 $supplierID = $_SESSION["kulanici_id"];
-// Sipariş onaylama işlemi
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order_id'], $_POST['tracking_number'])) {
-    $order_id = intval($_POST['order_id']);
-    $tracking_number = mysqli_real_escape_string($baglanti, $_POST['tracking_number']);
-
-    // Sipariş bilgilerini al
-    $order_query = "SELECT Product_id, Quantity FROM orders WHERE Order_id = $order_id";
-    $order_result = mysqli_query($baglanti, $order_query);
-
-    if ($order_result && mysqli_num_rows($order_result) > 0) {
-        $order = mysqli_fetch_assoc($order_result);
-        $product_id = $order['Product_id'];
-        $quantity = $order['Quantity'];
-
-        // Shipment tablosuna veri ekle
-        $shipment_query = "INSERT INTO shipment (Order_id, TrackingNumber, Supplier_id) VALUES ($order_id, '$tracking_number', '$supplierID')";
-        if (mysqli_query($baglanti, $shipment_query)) {
-            // ProductStock güncelleme işlemi
-            $update_stock_query = "UPDATE product SET ProductStock = ProductStock - $quantity WHERE Product_id = $product_id";
-            if (mysqli_query($baglanti, $update_stock_query)) {
-                $success_message = "Sipariş Onaylandı. Kargo numarası kaydedildi ve stok güncellendi.";
-            } else {
-                $error_message = "Stok güncellenirken bir hata oluştu: " . mysqli_error($baglanti);
-            }
-        } else {
-            $error_message = "Kargo bilgisi kaydedilirken bir hata oluştu: " . mysqli_error($baglanti);
-        }
-    } else {
-        $error_message = "Sipariş bilgisi alınırken bir hata oluştu.";
-    }
-}
 
 // Son 10 Günlük Satışlar İçin Cursor Kullanarak Verileri Çekme
 $query = "CALL GetRecentSales(?)";  // Burada prosedür adını "GetRecentSales" olarak kullandık
@@ -133,43 +102,43 @@ $result = mysqli_query($baglanti, $query);
             <?php
             if ($result && mysqli_num_rows($result) > 0) {
                 echo '<table class="table table-bordered">';
-                echo '<thead><tr><th>Sipariş Tarihi</th><th>Ürün Adı</th><th>Adet</th><th>Kullanıcı</th><th>Alıcı Adresi</th><th>Kargo Numarası</th></tr></thead>';
+                echo '<thead><tr><th>Sipariş ID</th><th>Sipariş Tarihi</th><th>Ürün Adı</th><th>Adet</th><th>Kullanıcı</th><th>Alıcı Adresi</th><th>Kargo Numarası</th></tr></thead>';
                 echo '<tbody>';
                 while ($row = mysqli_fetch_assoc($result)) {
                     $order_id = $row['Order_id'];
                     echo '<tr>';
+                    echo '<td>' . htmlspecialchars($row["Order_id"]) . '</td>';
                     echo '<td>' . htmlspecialchars($row["OrderDate"]) . '</td>';
                     echo '<td>' . htmlspecialchars($row["ProductName"]) . '</td>';
                     echo '<td>' . htmlspecialchars($row["Quantity"]) . '</td>';
                     echo '<td>' . htmlspecialchars($row["FirstName"] . ' ' . $row["LastName"]) . '</td>';
                     echo '<td>' . htmlspecialchars($row["Address"]) . '</td>';
 
-                    // Kargo Numarası Görüntüleme ve Buton Gizleme
-                    if (!empty($row['TrackingNumber'])) {
-                        echo '<td>' . htmlspecialchars($row['TrackingNumber']) . '</td>';
-
-                    } else if($row['ReturnStatus'] == 1){
-                        echo '<td>' . "Sipariş iade edildi.". '</td>';
-                      
-                    } 
-                    else {
-                        echo '<td>
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="order_id" value="' . $order_id . '">
-                                    <input type="text" name="tracking_number" placeholder="Kargo No" required>
-                                    <button type="submit" class="btn btn-success btn-sm">Onayla</button>
-                                </form>
-                              </td>';
+                    // Kargo Numarası veya İade Durumu
+                    if ($row['ReturnStatus'] == 1) {
+                        echo '<td>Sipariş iade edildi.</td>';
+                    } else {
+                        if (!empty($row['TrackingNumber'])) {
+                            echo '<td>' . htmlspecialchars($row['TrackingNumber']) . '</td>';
+                        } else {
+                            echo '<td>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="order_id" value="' . htmlspecialchars($order_id) . '">
+                                        <input type="text" name="tracking_number" placeholder="Kargo No" required>
+                                        <button type="submit" class="btn btn-success btn-sm">Onayla</button>
+                                    </form>
+                                  </td>';
+                        }
                     }
-
                     echo '</tr>';
                 }
+
+                // Tablo kapanışı
                 echo '</tbody>';
                 echo '</table>';
-            } else {
-                echo '<p>Henüz siparişiniz yok.</p>';
             }
             ?>
+
         </div>
     </div>
 
